@@ -224,8 +224,6 @@ cd kirby
 
 # 🔨 Compilación
 
-El proyecto utiliza un `Makefile`.
-
 ## Compilar
 
 ```bash
@@ -253,33 +251,6 @@ o
 ```bash
 make clean
 ```
-
----
-
-# 🧩 Makefile
-
-```make
-CXX=g++
-
-CXXFLAGS=-Wall -Iinclude
-
-LIBS=-lncurses -lpthread
-
-SRC=$(wildcard src/**/*.cpp)
-
-OUT=kirby
-
-all:
-	$(CXX) $(SRC) -o $(OUT) $(CXXFLAGS) $(LIBS)
-
-run:
-	./$(OUT)
-
-clean:
-	rm -f $(OUT)
-```
-
----
 
 # 🎮 Controles
 
@@ -425,10 +396,3 @@ en lugar de `cout`.
 | Sergio Tepaz | Concurrencia/IA |
 
 ---
-
-# 📚 Referencias
-
-- NCURSES Programming HOWTO :contentReference[oaicite:0]{index=0}
-- pthreads tutorial :contentReference[oaicite:1]{index=1}
-- Makefile best practices :contentReference[oaicite:2]{index=2}
-- ncurses multithreading example :contentReference[oaicite:3]{index=3}
