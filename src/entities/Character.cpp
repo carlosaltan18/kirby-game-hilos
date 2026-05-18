@@ -7,6 +7,7 @@ Character::Character(int x, int y, int width, int height, int health)
     grounded = false;
 }
 
+//Actualiza la salud 
 void Character::takeDamage(int damage) {
 
     health -= damage;

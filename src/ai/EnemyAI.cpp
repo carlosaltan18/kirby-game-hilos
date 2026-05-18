@@ -1,78 +1,36 @@
 #include "../../include/EnemyAI.h"
-
-// ======================================
-// CONSTRUCTOR
-// ======================================
+#include <cmath>
 
 EnemyAI::EnemyAI() {
-
     currentState = PATROL;
 }
 
-// ======================================
-// UPDATE ENEMY AI
-// ======================================
-
-void EnemyAI::updateEnemy(
-    Enemy* enemy,
-    Player* player
-) {
+void EnemyAI::updateEnemy(Enemy* enemy, Player* player) {
 
     // ======================================
-    // CALCULAR DISTANCIA
+    // Calcular las distancias horizontal y vertical entre el enemigo y el jugador
     // ======================================
+    int distanceX = pathSystem.calculateDistance(enemy, player);
+    int distanceY = abs(enemy->getY() - player->getY()); // Diferencia de altura entre el enemigo y el jugador
 
-    int distance =
-        pathSystem.calculateDistance(
-            enemy,
-            player
-        );
 
-    // ======================================
-    // DETECTAR JUGADOR
-    // ======================================
-
-    if(distance < 15) {
-
+    // Solo persigue si Kirby está cerca horizontalmente Y además están casi al mismo nivel del suelo
+    if(distanceX < 15 && distanceY <= 3) {
         currentState = CHASE;
-    }
-
-    else {
-
+    } else {
         currentState = PATROL;
     }
 
     // ======================================
-    // EJECUTAR IA
+    // Llamar a la función de movimiento correspondiente según el estado actual
     // ======================================
-
     switch(currentState) {
-
-        // ==================================
-        // PATRULLAR
-        // ==================================
-
         case PATROL:
-
-            pathSystem.patrolMovement(
-                enemy,
-                5,
-                150
-            );
-
+            pathSystem.patrolMovement(enemy, 0, 0);
             break;
 
-        // ==================================
-        // PERSEGUIR JUGADOR
-        // ==================================
-
         case CHASE:
-
-            pathSystem.moveTowardsTarget(
-                enemy,
-                player->getX()
-            );
-
+            pathSystem.moveTowardsTarget(enemy, player->getX());
             break;
     }
 }

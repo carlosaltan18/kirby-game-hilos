@@ -11,9 +11,6 @@ void InstructionScreen::show() {
     mvprintw(7, 15, "OBJETIVO:");
     mvprintw(8, 15, "Avanza por el nivel, evita o absorbe enemigos y llega a la meta.");
 
-    // ======================================
-    // CONTROLES  
-    // ======================================
     mvprintw(11, 15, "CONTROLES:");
     mvprintw(12, 15, "[W] Saltar / Flotar en el aire");
     mvprintw(13, 15, "[A] Mover Izquierda");

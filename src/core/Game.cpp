@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <unistd.h>
 
+// Función para actualizar enemigos en un hilo separado
 void* enemyThreadFunction(void* arg) {
     Enemy* enemy = (Enemy*)arg;
     while(true) {
@@ -13,60 +14,46 @@ void* enemyThreadFunction(void* arg) {
     return NULL;
 }
 
-// ======================================
-// CONSTRUCTOR
-// ======================================
 Game::Game() {
     running = true;
     currentLevel = 1;
 }
 
-// ======================================
-// INICIALIZACIÓN
-// ======================================
 void Game::init() {
     threadManager.init();
 
-    player = new Player(10, 10);
+    // Evitamos que getch() bloquee el hilo principal!
+    nodelay(stdscr, TRUE);
+    keypad(stdscr, TRUE);
 
+    player = new Player(10, 10);
     loadLevel("assets/levels/level1.txt");
 
-    enemies.push_back(new Enemy(40, 10));
-    enemies.push_back(new Enemy(70, 10));
+    enemies.push_back(new Enemy(40, 5));
+    enemies.push_back(new Enemy(70, 5));
+    
     for(auto enemy : enemies) {
         pthread_t enemyThread;
         pthread_create(&enemyThread, NULL, enemyThreadFunction, enemy);
     }
 }
 
-// ======================================
-// LOAD LEVEL 
-// ======================================
 void Game::loadLevel(std::string levelPath) {
     LevelManager levelManager;
     int levelNumber = (levelPath.find("level2") != std::string::npos) ? 2 : 1;
     levelManager.loadLevel(levelNumber, &map);
 }
 
-// ======================================
-// INPUT DEL JUGADOR
-// ======================================
 void Game::processInput() {
     int ch = inputManager.getInput();
-    switch(ch) {
-        case 'a': case 'A':
-            player->moveLeft();
-            break;
-        case 'd': case 'D':
-            player->moveRight();
-            break;
-        case 'w': case 'W':
-            player->jump(); 
-            break;
+    
+    if (ch == ERR) return;//El juego continua sin esperar input
 
-        // ======================================
-        // J: ABSORBER ENEMIGOS
-        // ======================================
+    switch(ch) {
+        case 'a': case 'A': player->moveLeft(); break;
+        case 'd': case 'D': player->moveRight(); break;
+        case 'w': case 'W': player->jump(); break;
+        
         case 'j': case 'J':
             player->inhale();
             for (auto enemy : enemies) {
@@ -75,58 +62,45 @@ void Game::processInput() {
                     if (distance <= 5 && player->getY() == enemy->getY()) {
                         enemy->takeDamage(1); 
                         player->addScore(100);
-                        // Aquí podrías cambiar el estado de Kirby a "Con Habilidad"
                     }
                 }
             }
             break;
 
-        case 'h': case 'H': 
-            player->stopInhaling();
-            break;
-
-        // ======================================
-        // K: DISPARAR PROYECTIL 
-        // ======================================
+        case 'h': case 'H': player->stopInhaling(); break;
+        
         case 'k': case 'K':
-            // Instancia un proyectil justo enfrente de Kirby
             projectiles.push_back(new Projectile(player->getX() + 8, player->getY()));
             break;
 
-        case 'q': case 'Q':
-            running = false;
-            break;
+        case 'q': case 'Q': running = false; break;
     }
 }
 
-// ======================================
-// ACTUALIZACIÓN LÓGICA 
-// ======================================
 void Game::update() {
-    // 1. Actualizar a Kirby y aplicarle gravedad
+    // Kirby actualiza su propio salto y la gravedad chequea el piso
     player->update();
     gravitySystem.applyGravity(player, &map);
 
-    // 2. Actualizar la IA de los Enemigos
+    // Enemigos actualizan su IA y también son afectados por la gravedad
     for(auto enemy : enemies) {
         if (enemy->isActive()) {
             enemyAI.updateEnemy(enemy, player);
+            gravitySystem.applyGravity(enemy, &map); 
             
-            // Colisión directa de Kirby contra Enemigo (Daño)
             if (CollisionSystem::checkAABB(
                     player->getX(), player->getY(), player->getWidth(), player->getHeight(),
                     enemy->getX(), enemy->getY(), enemy->getWidth(), enemy->getHeight()
                 )) {
-                player->takeDamage(1); // Pierde vida [cite: 66]
+                player->takeDamage(1);
             }
         }
     }
 
-    // 3. Actualizar y Mover Proyectiles
+    // Lanzamos proyectiles y chequeamos colisiones con enemigos
     for (auto projectile : projectiles) {
         if (projectile->isActive()) {
             projectile->update(); 
-            // Verificar si el proyectil impacta
             for (auto enemy : enemies) {
                 if (enemy->isActive() && CollisionSystem::checkAABB(
                         projectile->getX(), projectile->getY(), projectile->getWidth(), projectile->getHeight(),
@@ -151,16 +125,13 @@ void Game::update() {
     }
 }
 
-// ======================================
-// DIBUJADO DE RENDER 
-// ======================================
 void Game::render() {
     pthread_mutex_lock(&threadManager.gameMutex);
 
     renderer.render(map, camera, *player, enemies, projectiles);
     hud.render(player, currentLevel);
+    refresh(); 
 
-    refresh();
     pthread_mutex_unlock(&threadManager.gameMutex);
 }
 
@@ -174,6 +145,4 @@ void Game::run() {
     threadManager.destroy();
 }
 
-bool Game::isRunning() {
-    return running;
-}
+bool Game::isRunning() { return running; }

@@ -5,6 +5,7 @@ Camera::Camera() {
     offsetX = 0;
 }
 
+//Actualiza la posición de la cámara en función de la posición del jugador
 void Camera::update(
     int playerX
 ) {

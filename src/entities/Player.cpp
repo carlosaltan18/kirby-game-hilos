@@ -6,48 +6,43 @@ Player::Player(int x, int y) : Character(x, y, 7, 1, 3) {
     floatTimer = 0;
 }
 
-void Player::moveLeft() { 
-    x--; 
-}
-void Player::moveRight() { x++; }
+void Player::moveLeft() { x -= 4; }
+void Player::moveRight() { x += 4; }
 
 void Player::jump() {
     if(grounded) {
-        velocityY = -4;
+        velocityY = -4; //nivel de salto normal
         grounded = false;
     } else {
         currentState = KirbyState::FLOATING;
-        velocityY = -1;
-        floatTimer = 50;
+        velocityY = -8; // impulso al inflarse
+        floatTimer = 40;
     }
 }
 
-void Player::inhale() {
-    currentState = KirbyState::INHALING;
-}
-
-void Player::stopInhaling() {
-    currentState = KirbyState::NORMAL;
-}
-
+void Player::inhale() { currentState = KirbyState::INHALING; }
+void Player::stopInhaling() { currentState = KirbyState::NORMAL; }
 void Player::addScore(int points) { score += points; }
 int Player::getScore() { return score; }
 
 void Player::update() {
+    // Calcula la gravedad y el movimiento vertical
     if (!grounded) {
-        velocityY += 1; 
-        if (velocityY > 3) velocityY = 3; 
+        if (currentState == KirbyState::FLOATING) {
+            velocityY = 1; // hace que caiga lentamente mientras flota
+        } else {
+            velocityY += 1; // Gravedad normal que acelera hacia abajo
+            if (velocityY > 2) velocityY = 2; // Velocidad terminal
+        }
     } else {
-        velocityY = 0; 
+        if (velocityY > 0) velocityY = 0; // frena al tocar piso
     }
-
-    y += velocityY;
     
+    y += velocityY;
+
     if (currentState == KirbyState::FLOATING) {
         floatTimer--;
-        if (floatTimer <= 0) {
-            currentState = KirbyState::NORMAL;
-        }
+        if (floatTimer <= 0) currentState = KirbyState::NORMAL;
     }
 }
 

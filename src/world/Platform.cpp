@@ -23,8 +23,6 @@ int Platform::getWidth() {
 
 bool Platform::isOnPlatform(int entityX, int entityY) {
 
-    // Verifica si la entidad está encima
-
     return (
         entityY == y - 1 &&
         entityX >= x &&

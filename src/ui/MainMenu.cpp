@@ -28,7 +28,6 @@ void MainMenu::show() {
         mvprintw(3, 20, "      KIRBY CONSOLE ENGINE");
         mvprintw(4, 20, "=============================");
 
-        // Renderizado de Opciones
         for(int i = 0; i < 4; i++) {
             if(i == highlight)
                 attron(A_REVERSE);
@@ -62,7 +61,7 @@ void MainMenu::show() {
                 } else if (highlight == 2) {
                     scoreScreen.show();
                 } else if (highlight == 3) {
-                    return; // Cierre ordenado
+                    return; 
                 }
                 break;
 
