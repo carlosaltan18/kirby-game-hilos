@@ -1,9 +1,18 @@
 #ifndef HUD_H
 #define HUD_H
 
+#include "Player.h"
+
 class HUD {
+
 public:
-    void draw(int lives, int score, int level);
+
+    HUD();
+
+    void render(
+        Player* player,
+        int currentLevel
+    );
 };
 
 #endif
