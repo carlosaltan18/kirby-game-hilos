@@ -34,6 +34,13 @@ void Player::addScore(int points) { score += points; }
 int Player::getScore() { return score; }
 
 void Player::update() {
+    if (!grounded) {
+        velocityY += 1; 
+        if (velocityY > 3) velocityY = 3; 
+    } else {
+        velocityY = 0; 
+    }
+
     y += velocityY;
     
     if (currentState == KirbyState::FLOATING) {
@@ -41,10 +48,6 @@ void Player::update() {
         if (floatTimer <= 0) {
             currentState = KirbyState::NORMAL;
         }
-    }
-    
-    if (grounded) {
-        currentState = KirbyState::NORMAL;
     }
 }
 

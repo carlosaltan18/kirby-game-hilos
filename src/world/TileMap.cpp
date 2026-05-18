@@ -14,7 +14,7 @@ void TileMap::clearMap() {
 void TileMap::addRow(const std::string& row) {
     grid.push_back(row);
     height = grid.size();
-    if (row.length() > width) {
+    if ((int)row.length() > width) { 
         width = row.length();
     }
 }

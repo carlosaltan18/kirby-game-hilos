@@ -1,17 +1,12 @@
 #include "../../include/Renderer.h"
-
 #include <ncurses.h>
 
-// ======================================
-// CONSTRUCTOR
-// ======================================
 
 Renderer::Renderer() {}
 
 // ======================================
-// RENDER ENGINE
+// MOTOR DE RENDERIZADO
 // ======================================
-
 void Renderer::render(
     TileMap &map,
     Camera &camera,
@@ -19,75 +14,51 @@ void Renderer::render(
     std::vector<Enemy*> &enemies,
     std::vector<Projectile*> &projectiles
 ) {
-
     clear();
 
+    int offsetX = camera.getOffsetX();
+    std::vector<std::string>& grid = map.getGrid();
+
     // ======================================
-    // MAPA
+    // 1. RENDERIZAR MAPA SEGÚN LA CÁMARA
     // ======================================
+    for (int y = 0; y < map.getHeight(); y++) {
+        std::string visibleRow = "";
+        if (offsetX < (int)grid[y].length()) {
+            visibleRow = grid[y].substr(offsetX, 80); 
+        }
+        mvprintw(y, 0, "%s", visibleRow.c_str());
+    }
 
-    for(int y = 0; y < 24; y++) {
+    // ======================================
+    // 2. RENDERIZAR AL JUGADOR 
+    // ======================================
+    int playerScreenX = player.getX() - offsetX;
+    if (playerScreenX >= 0 && playerScreenX < 80) {
+        mvprintw(player.getY(), playerScreenX, "%s", player.getSymbol().c_str());
+    }
 
-        for(int x = 0; x < 80; x++) {
-
-            char tile = map.getTile(
-                x + camera.getOffsetX(),
-                y
-            );
-
-            mvaddch(
-                y,
-                x,
-                tile
-            );
+    // ======================================
+    // 3. RENDERIZAR ENEMIGOS
+    // ======================================
+    for (auto enemy : enemies) {
+        if (enemy->isActive()) {
+            int enemyScreenX = enemy->getX() - offsetX;
+            if (enemyScreenX >= 0 && enemyScreenX < 80) {
+                mvprintw(enemy->getY(), enemyScreenX, "%s", enemy->getSymbol().c_str());
+            }
         }
     }
 
     // ======================================
-    // PLAYER
+    // 4. RENDERIZAR PROYECTILES
     // ======================================
-
-    mvaddch(
-        player.getY(),
-        player.getX()
-        -
-        camera.getOffsetX(),
-        player.getSymbol()
-    );
-
-    // ======================================
-    // ENEMIES
-    // ======================================
-
-    for(auto enemy : enemies) {
-
-        if(enemy->isActive()) {
-
-            mvaddch(
-                enemy->getY(),
-                enemy->getX()
-                -
-                camera.getOffsetX(),
-                enemy->getSymbol()
-            );
-        }
-    }
-
-    // ======================================
-    // PROJECTILES
-    // ======================================
-
-    for(auto projectile : projectiles) {
-
-        if(projectile->isActive()) {
-
-            mvaddch(
-                projectile->getY(),
-                projectile->getX()
-                -
-                camera.getOffsetX(),
-                projectile->getSymbol()
-            );
+    for (auto projectile : projectiles) {
+        if (projectile->isActive()) {
+            int projScreenX = projectile->getX() - offsetX;
+            if (projScreenX >= 0 && projScreenX < 80) {
+                mvprintw(projectile->getY(), projScreenX, "%s", projectile->getSymbol().c_str());
+            }
         }
     }
 
