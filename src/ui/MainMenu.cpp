@@ -1,6 +1,9 @@
 #include "MainMenu.h"
 #include "InstructionScreen.h"
 #include "ScoreScreen.h"
+#include "PauseMenu.h"
+#include "GameOverScreen.h"
+#include "HUD.h"
 #include <ncurses.h>
 #include <string>
 
@@ -11,22 +14,20 @@ void MainMenu::show() {
 
     InstructionScreen instructionScreen;
     ScoreScreen scoreScreen;
+    PauseMenu pauseMenu;
+    GameOverScreen gameOverScreen;
+    HUD hud;
 
     while(true) {
         clear();
-        
         mvprintw(2, 20, "=============================");
         mvprintw(3, 20, "      KIRBY CONSOLE ENGINE   ");
         mvprintw(4, 20, "=============================");
 
         for(int i = 0; i < 4; i++) {
-            if(i == highlight) 
-                attron(A_REVERSE); 
-            
+            if(i == highlight) attron(A_REVERSE); 
             mvprintw(8 + (i*2), 25, "%s", options[i].c_str());
-            
-            if(i == highlight) 
-                attroff(A_REVERSE);
+            if(i == highlight) attroff(A_REVERSE);
         }
 
         refresh();
@@ -41,11 +42,26 @@ void MainMenu::show() {
                 break;
             case 10: // Enter
                 if (highlight == 0) {
-                    clear();
-                    mvprintw(10, 20, "[ VISUALIZACION DEL JUEGO AQUI ]");
-                    mvprintw(12, 20, "Presiona cualquier tecla para salir del juego...");
-                    refresh();
-                    getch();
+                    // --- DEMOSTRACIÓN DE JUEGO (FASE 2) ---
+                    bool playing = true;
+                    while(playing) {
+                        clear();
+                        hud.draw(3, 1500, 1); // Dibuja el HUD
+                        mvprintw(10, 20, "[ SIMULACION DEL JUEGO ]");
+                        mvprintw(12, 10, "Presiona [ESC] para Pausar o [Q] para simular Game Over.");
+                        mvprintw(15, 20, "         K       * E      ");
+                        mvprintw(16, 20, "############################");
+                        refresh();
+
+                        int gameInput = getch();
+                        if (gameInput == 27) { // 27 es el código ASCII de ESC
+                            bool resume = pauseMenu.show();
+                            if (!resume) playing = false; // Sale al menú principal
+                        } else if (gameInput == 'q' || gameInput == 'Q') {
+                            gameOverScreen.show(1500);
+                            playing = false; // Sale al menú principal tras el Game Over
+                        }
+                    }
                 } else if (highlight == 1) {
                     instructionScreen.show();
                 } else if (highlight == 2) {
