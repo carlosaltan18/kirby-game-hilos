@@ -1,26 +1,95 @@
 #include "../../include/Renderer.h"
-#include "../../include/Entity.h"
+
 #include <ncurses.h>
-#include <vector>
 
-void Renderer::drawFrame(std::vector<Entity*>& entities) {
-    clear(); 
-    
-    // HUD
-    mvprintw(1, 2, "Vida: 3   Score: 1200   Nivel: 1");
-    mvprintw(2, 0, "--------------------------------------------------");
+// ======================================
+// CONSTRUCTOR
+// ======================================
 
-    // Entidades
-    for(Entity* e : entities) {
-        if(e->isActive()) {
-            mvaddch(e->getY(), e->getX(), e->getSymbol());
+Renderer::Renderer() {}
+
+// ======================================
+// RENDER ENGINE
+// ======================================
+
+void Renderer::render(
+    TileMap &map,
+    Camera &camera,
+    Player &player,
+    std::vector<Enemy*> &enemies,
+    std::vector<Projectile*> &projectiles
+) {
+
+    clear();
+
+    // ======================================
+    // MAPA
+    // ======================================
+
+    for(int y = 0; y < 24; y++) {
+
+        for(int x = 0; x < 80; x++) {
+
+            char tile = map.getTile(
+                x + camera.getOffsetX(),
+                y
+            );
+
+            mvaddch(
+                y,
+                x,
+                tile
+            );
         }
     }
 
-    // Plataformas estáticas (Demostración)
-    for(int i = 0; i < 50; i++) {
-        mvaddch(20, i, '#');
+    // ======================================
+    // PLAYER
+    // ======================================
+
+    mvaddch(
+        player.getY(),
+        player.getX()
+        -
+        camera.getOffsetX(),
+        player.getSymbol()
+    );
+
+    // ======================================
+    // ENEMIES
+    // ======================================
+
+    for(auto enemy : enemies) {
+
+        if(enemy->isActive()) {
+
+            mvaddch(
+                enemy->getY(),
+                enemy->getX()
+                -
+                camera.getOffsetX(),
+                enemy->getSymbol()
+            );
+        }
     }
 
-    refresh(); 
+    // ======================================
+    // PROJECTILES
+    // ======================================
+
+    for(auto projectile : projectiles) {
+
+        if(projectile->isActive()) {
+
+            mvaddch(
+                projectile->getY(),
+                projectile->getX()
+                -
+                camera.getOffsetX(),
+                projectile->getSymbol()
+            );
+        }
+    }
+
+    refresh();
 }
