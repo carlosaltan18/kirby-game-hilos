@@ -1,20 +1,15 @@
-#include "MainMenu.h"
-
-#include "InstructionScreen.h"
-#include "ScoreScreen.h"
-#include "PauseMenu.h"
-#include "GameOverScreen.h"
-
+#include "../../include/MainMenu.h"
+#include "../../include/InstructionScreen.h"
+#include "../../include/ScoreScreen.h"
+#include "../../include/PauseMenu.h"
+#include "../../include/GameOverScreen.h"
 #include "../../include/HUD.h"
+#include "../../include/Renderer.h"
 #include "../../include/Player.h"
-
+#include "../../include/Enemy.h"
 #include <ncurses.h>
 
 #include <string>
-
-// ======================================
-// SHOW MENU
-// ======================================
 
 void MainMenu::show() {
 
@@ -141,137 +136,30 @@ void MainMenu::show() {
                     highlight + 1;
 
                 break;
-
-            // ==============================
-            // ENTER
-            // ==============================
-
-            case 10:
-
-                // ==========================
-                // START GAME
-                // ==========================
-
-                if(highlight == 0) {
-
+            case 10: // Enter
+                if (highlight == 0) {
+                    // --- DEMOSTRACIÓN DE JUEGO (FASE 2) ---
                     bool playing = true;
-
                     while(playing) {
 
                         clear();
-
-                        // ==================
-                        // HUD
-                        // ==================
-
-                        hud.render(
-                            &demoPlayer,
-                            1
-                        );
-
-                        // ==================
-                        // DEMO GAME
-                        // ==================
-
-                        mvprintw(
-                            10,
-                            20,
-                            "[ SIMULACION DEL JUEGO ]"
-                        );
-
-                        mvprintw(
-                            12,
-                            10,
-                            "ESC = Pausa | Q = Game Over"
-                        );
-
-                        // ==================
-                        // PLAYER
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            20,
-                            "K"
-                        );
-
-                        // ==================
-                        // PROJECTILE
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            30,
-                            "*"
-                        );
-
-                        // ==================
-                        // ENEMY
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            40,
-                            "E"
-                        );
-
-                        // ==================
-                        // PLATFORM
-                        // ==================
-
-                        mvprintw(
-                            16,
-                            20,
-                            "#########################"
-                        );
-
+                        hud.draw(3, 1500, 1); // Dibuja el HUD
+                        mvprintw(10, 20, "[ SIMULACION DEL JUEGO ]");
+                        mvprintw(12, 10, "Presiona [ESC] para Pausar o [Q] para simular Game Over.");
+                        mvprintw(15, 20, "         K       * E      ");
+                        mvprintw(16, 20, "############################");
                         refresh();
 
-                        // ==================
-                        // INPUT GAME
-                        // ==================
-
-                        int gameInput =
-                            getch();
-
-                        // ==================
-                        // PAUSE
-                        // ==================
-
-                        if(gameInput == 27) {
-
-                            bool resume =
-                                pauseMenu.show();
-
-                            if(!resume)
-                                playing = false;
-                        }
-
-                        // ==================
-                        // GAME OVER
-                        // ==================
-
-                        else if(
-                            gameInput == 'q'
-                            ||
-                            gameInput == 'Q'
-                        ) {
-
-                            gameOverScreen.show(
-                                1500
-                            );
-
-                            playing = false;
+                        int gameInput = getch();
+                        if (gameInput == 27) { // 27 es el código ASCII de ESC
+                            bool resume = pauseMenu.show();
+                            if (!resume) playing = false; // Sale al menú principal
+                        } else if (gameInput == 'q' || gameInput == 'Q') {
+                            gameOverScreen.show(1500);
+                            playing = false; // Sale al menú principal tras el Game Over
                         }
                     }
-                }
-
-                // ==========================
-                // INSTRUCTIONS
-                // ==========================
-
-                else if(highlight == 1) {
-
+                } else if (highlight == 1) {
                     instructionScreen.show();
                 }
 

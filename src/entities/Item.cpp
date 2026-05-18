@@ -1,11 +1,9 @@
 #include "../../include/Item.h"
 
-Item::Item(int x, int y)
-: Entity(x,y)
-{}
+Item::Item(int x, int y) : Entity(x,y) {}
 
 void Item::update() {}
 
-char Item::getSymbol() {
-    return '?';
+std::string Item::getSymbol() {
+    return "?";
 }

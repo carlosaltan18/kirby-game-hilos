@@ -2,14 +2,13 @@
 #define FOOD_H
 
 #include "Item.h"
+#include <string>
 
 class Food : public Item {
-
 public:
-
     Food(int x, int y);
-
-    char getSymbol() override;
+    
+    std::string getSymbol() override;
 };
 
 #endif

@@ -15,5 +15,5 @@ void GameOverScreen::show(int finalScore) {
     mvprintw(16, 20, "Presiona cualquier tecla para continuar...");
     
     refresh();
-    getch(); // Espera a que el usuario presione una tecla
+    getch(); 
 }

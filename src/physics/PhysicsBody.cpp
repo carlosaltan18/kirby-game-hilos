@@ -1,67 +1,32 @@
 #include "../../include/PhysicsBody.h"
 
-// ======================================
-// Constructor
-// ======================================
-
 PhysicsBody::PhysicsBody() {
-
     mass = 1.0f;
-
     gravity = 1.0f;
-
     friction = 0.1f;
-
     maxFallSpeed = 3;
 }
 
-// ======================================
-// Aplicar gravedad
-// ======================================
-
 void PhysicsBody::applyGravity(int &velocityY) {
-
     velocityY += gravity;
-
-    if(velocityY > maxFallSpeed)
-        velocityY = maxFallSpeed;
+    if(velocityY > maxFallSpeed) velocityY = maxFallSpeed;
 }
-
-// ======================================
-// Aplicar fricción horizontal
-// ======================================
 
 void PhysicsBody::applyFriction(int &velocityX) {
-
     if(velocityX > 0) {
-
         velocityX -= friction;
-
-        if(velocityX < 0)
-            velocityX = 0;
-    }
-
-    else if(velocityX < 0) {
-
+        if(velocityX < 0) velocityX = 0;
+    } else if(velocityX < 0) {
         velocityX += friction;
-
-        if(velocityX > 0)
-            velocityX = 0;
+        if(velocityX > 0) velocityX = 0;
     }
 }
 
-// ======================================
-// Getters
-// ======================================
-
-float PhysicsBody::getMass() {
-    return mass;
-}
-
-float PhysicsBody::getGravity() {
-    return gravity;
-}
-
-float PhysicsBody::getFriction() {
-    return friction;
+void PhysicsBody::enforceBoundaries(int &x, int &y, int width, int height, int mapWidth, int mapHeight) {
+    if (x < 0) x = 0;
+    if (x + width >= mapWidth) x = mapWidth - width;
+    
+    if (y < 0) y = 0;
+    // Si toca el fondo del mapa (vacío), debería morir, pero esto evita que rompa la consola
+    if (y + height >= mapHeight) y = mapHeight - height;
 }

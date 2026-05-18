@@ -1,68 +1,34 @@
 #include "../../include/TileMap.h"
 
-#include <fstream>
+TileMap::TileMap() {
+    width = 0;
+    height = 0;
+}
 
-TileMap::TileMap() {}
+void TileMap::clearMap() {
+    grid.clear();
+    width = 0;
+    height = 0;
+}
 
-// ======================================
-// LOAD MAP
-// ======================================
-
-void TileMap::load(
-    std::string filename
-) {
-
-    mapData.clear();
-
-    std::ifstream file(
-        filename
-    );
-
-    std::string line;
-
-    while(getline(file, line)) {
-
-        mapData.push_back(line);
+void TileMap::addRow(const std::string& row) {
+    grid.push_back(row);
+    height = grid.size();
+    if (row.length() > width) {
+        width = row.length();
     }
-
-    file.close();
 }
 
-// ======================================
-// GET TILE
-// ======================================
+bool TileMap::isSolid(int x, int y) {
 
-char TileMap::getTile(
-    int x,
-    int y
-) {
-
-    if(y < 0 || y >= (int)mapData.size())
-        return ' ';
-
-    if(x < 0 || x >= (int)mapData[y].size())
-        return ' ';
-
-    return mapData[y][x];
+    if (x < 0 || x >= width || y < 0 || y >= height) return true;
+    
+    return grid[y][x] == '#';
 }
 
-// ======================================
-// WIDTH
-// ======================================
-
-int TileMap::getWidth() {
-
-    if(mapData.empty())
-        return 0;
-
-    return mapData[0].size();
+std::vector<std::string>& TileMap::getGrid() {
+    return grid;
 }
 
-// ======================================
-// HEIGHT
-// ======================================
-
-int TileMap::getHeight() {
-
-    return mapData.size();
-}
+int TileMap::getWidth() { return width; }
+int TileMap::getHeight() { return height; }

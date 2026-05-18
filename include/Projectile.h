@@ -2,16 +2,14 @@
 #define PROJECTILE_H
 
 #include "Entity.h"
+#include <string>
 
 class Projectile : public Entity {
-
 public:
-
     Projectile(int x, int y);
-
     void update() override;
-
-    char getSymbol() override;
+    
+    std::string getSymbol() override;
 };
 
 #endif

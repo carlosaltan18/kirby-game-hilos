@@ -1,43 +1,11 @@
 #include "../../include/Enemy.h"
 
-// ======================================
-// CONSTRUCTOR
-// ======================================
-
-Enemy::Enemy(
-    int x,
-    int y
-)
-: Character(x,y,1)
-{
-    damage = 1;
-}
-
-// ======================================
-// UPDATE
-// ======================================
-
+Enemy::Enemy(int x, int y) : Character(x, y, 5, 1, 1) {}
 void Enemy::update() {
-
-    // ======================================
-    // EnemyAI controla movimiento
-    // ======================================
+    x--;
+    if(x < 1) x = 100;
 }
 
-// ======================================
-// SYMBOL
-// ======================================
-
-char Enemy::getSymbol() {
-
-    return 'E';
-}
-
-// ======================================
-// DAMAGE
-// ======================================
-
-int Enemy::getDamage() {
-
-    return damage;
+std::string Enemy::getSymbol() {
+    return "[0_0]";
 }
