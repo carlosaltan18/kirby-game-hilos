@@ -16,27 +16,32 @@ void MainMenu::show() {
         "Salir"
     };
 
-    // ======================================
-    // SUBMENUS UTILIZADOS
-    // ======================================
     InstructionScreen instructionScreen;
     ScoreScreen scoreScreen;
+    
     while(true) {
         clear();
-
-        mvprintw(2, 20, "=============================");
-        mvprintw(3, 20, "      KIRBY CONSOLE ENGINE");
-        mvprintw(4, 20, "=============================");
+        mvprintw(2, 22, " _  _______ _____  ______ __     __ ");
+        mvprintw(3, 22, "| |/ /_   _|  __ \\|  _ \\ \\ \\   / / ");
+        mvprintw(4, 22, "| ' /  | | | |__) | |_) | \\ \\_/ /  ");
+        mvprintw(5, 22, "|  <   | | |  _  /|  _ <   \\   /   ");
+        mvprintw(6, 22, "| . \\ _| |_| | \\ \\| |_) |   | |    ");
+        mvprintw(7, 22, "|_|\\_\\_____|_|  \\_\\____/    |_|    ");
+        
+        mvprintw(9, 28, "--- CONSOLE ENGINE ---");
+        mvprintw(10, 36, "(>'-')>");
 
         for(int i = 0; i < 4; i++) {
-            if(i == highlight)
-                attron(A_REVERSE);
-
-            mvprintw(8 + (i * 2), 25, "%s", options[i].c_str());
-
-            if(i == highlight)
-                attroff(A_REVERSE);
+            if(i == highlight) {
+                attron(A_REVERSE | A_BOLD);
+                mvprintw(13 + (i * 2), 26, "  -> %-19s <-  ", options[i].c_str());
+                attroff(A_REVERSE | A_BOLD);
+            } else {
+                mvprintw(13 + (i * 2), 31, "%s", options[i].c_str());
+            }
         }
+
+        mvprintw(22, 12, "[ARRIBA / ABAJO] Navegar   ---   [ENTER] Seleccionar");
 
         refresh();
         choice = getch();
@@ -52,7 +57,6 @@ void MainMenu::show() {
 
             case 10: 
                 if (highlight == 0) {
-                    // --- EJECUCIÓN DEL MOTOR CONCURRENTE REAL ---
                     Game game;
                     game.init();
                     game.run(); 

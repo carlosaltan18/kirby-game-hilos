@@ -6,16 +6,16 @@ Player::Player(int x, int y) : Character(x, y, 7, 1, 3) {
     floatTimer = 0;
 }
 
-void Player::moveLeft() { x -= 4; }
-void Player::moveRight() { x += 4; }
+void Player::moveLeft() { x -= 3; }
+void Player::moveRight() { x += 3; }
 
 void Player::jump() {
     if(grounded) {
-        velocityY = -4; //nivel de salto normal
+        velocityY = -3; //nivel de salto normal
         grounded = false;
     } else {
         currentState = KirbyState::FLOATING;
-        velocityY = -8; // impulso al inflarse
+        velocityY = -5; // impulso al inflarse
         floatTimer = 40;
     }
 }

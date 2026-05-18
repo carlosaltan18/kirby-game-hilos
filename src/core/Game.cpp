@@ -3,11 +3,18 @@
 #include "../../include/CollisionSystem.h"
 #include <ncurses.h>
 #include <unistd.h>
+#include <cstdlib>
+#include "../../include/GameOverScreen.h"
 
-// Función para actualizar enemigos en un hilo separado
+// ======================================
+// HILOS OPTIMIZADOS (Auto-Limpieza)
+// ======================================
 void* enemyThreadFunction(void* arg) {
     Enemy* enemy = (Enemy*)arg;
-    while(true) {
+    
+    // El hilo SOLO corre mientras el enemigo tenga vida.
+    // Al morir, el bucle se rompe y el hilo se cierra limpiamente.
+    while(enemy->isActive()) { 
         enemy->update();
         usleep(100000);
     }
@@ -22,19 +29,20 @@ Game::Game() {
 void Game::init() {
     threadManager.init();
 
-    // Evitamos que getch() bloquee el hilo principal!
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
 
     player = new Player(10, 10);
     loadLevel("assets/levels/level1.txt");
 
-    enemies.push_back(new Enemy(40, 5));
-    enemies.push_back(new Enemy(70, 5));
-    
-    for(auto enemy : enemies) {
+    // Inicializamos el nivel con 3 enemigos distribuidos
+    for(int i = 0; i < 3; i++) {
+        Enemy* e = new Enemy(30 + (i * 20), 5);
+        enemies.push_back(e);
+        
         pthread_t enemyThread;
-        pthread_create(&enemyThread, NULL, enemyThreadFunction, enemy);
+        pthread_create(&enemyThread, NULL, enemyThreadFunction, e);
+        pthread_detach(enemyThread); // liberar recursos
     }
 }
 
@@ -46,8 +54,7 @@ void Game::loadLevel(std::string levelPath) {
 
 void Game::processInput() {
     int ch = inputManager.getInput();
-    
-    if (ch == ERR) return;//El juego continua sin esperar input
+    if (ch == ERR) return;
 
     switch(ch) {
         case 'a': case 'A': player->moveLeft(); break;
@@ -78,13 +85,16 @@ void Game::processInput() {
 }
 
 void Game::update() {
-    // Kirby actualiza su propio salto y la gravedad chequea el piso
     player->update();
     gravitySystem.applyGravity(player, &map);
 
-    // Enemigos actualizan su IA y también son afectados por la gravedad
+    int activeEnemiesCount = 0; //
+
+    // 1. Actualizar Enemigos y contar los sobrevivientes
     for(auto enemy : enemies) {
         if (enemy->isActive()) {
+            activeEnemiesCount++; // Suma al censo de enemigos vivos
+
             enemyAI.updateEnemy(enemy, player);
             gravitySystem.applyGravity(enemy, &map); 
             
@@ -97,7 +107,25 @@ void Game::update() {
         }
     }
 
-    // Lanzamos proyectiles y chequeamos colisiones con enemigos
+    // ======================================
+    // 2. SISTEMA DE RESPAWN DINÁMICO
+    // ======================================
+    // Si mataste enemigos generamos reemplazos
+    if (activeEnemiesCount < 3) {
+        int spawnX = player->getX() + 40 + (rand() % 20); 
+        if (spawnX >= map.getWidth() - 10) {
+            spawnX = map.getWidth() - 15;
+        }
+
+        Enemy* newEnemy = new Enemy(spawnX, 5);
+        enemies.push_back(newEnemy);
+
+        pthread_t enemyThread;
+        pthread_create(&enemyThread, NULL, enemyThreadFunction, newEnemy);
+        pthread_detach(enemyThread); 
+    }
+
+    // 3. Actualizar Proyectiles
     for (auto projectile : projectiles) {
         if (projectile->isActive()) {
             projectile->update(); 
@@ -116,6 +144,18 @@ void Game::update() {
 
     camera.update(player->getX());
 
+    // ======================================
+    // GAME OVER Y CAMBIO DE NIVEL
+    // ======================================
+    if (player->getHealth() <= 0) {
+        nodelay(stdscr, FALSE); 
+        
+        GameOverScreen gameOverScreen;
+        gameOverScreen.show(player->getScore()); 
+        running = false; 
+        return;
+    }
+
     if(player->getX() >= map.getWidth() - 5) {
         currentLevel++;
         if(currentLevel == 2) {
@@ -123,6 +163,7 @@ void Game::update() {
             player->setX(5);
         }
     }
+
 }
 
 void Game::render() {
@@ -143,6 +184,7 @@ void Game::run() {
         usleep(50000); 
     }
     threadManager.destroy();
+    nodelay(stdscr, FALSE);
 }
 
 bool Game::isRunning() { return running; }

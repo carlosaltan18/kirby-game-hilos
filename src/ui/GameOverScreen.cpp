@@ -1,19 +1,35 @@
 #include "../../include/GameOverScreen.h"
 #include <ncurses.h>
+#include <string>
 
 void GameOverScreen::show(int finalScore) {
-    clear();
-    
-    mvprintw(5, 20, "#################################");
-    mvprintw(6, 20, "#                               #");
-    mvprintw(7, 20, "#          GAME OVER            #");
-    mvprintw(8, 20, "#                               #");
-    mvprintw(9, 20, "#################################");
+    clear(); 
 
-    mvprintw(12, 25, "Puntaje Final: %d", finalScore);
+    int maxY, maxX;
+    getmaxyx(stdscr, maxY, maxX); 
 
-    mvprintw(16, 20, "Presiona cualquier tecla para continuar...");
+    int boxWidth = 40;
+    int startX = (maxX - boxWidth) / 2; 
+    int startY = (maxY / 2) - 5;        
+
+    attron(A_BOLD); 
+    mvprintw(startY,     startX, "========================================");
+    mvprintw(startY + 1, startX, "|                                      |");
+    mvprintw(startY + 2, startX, "|              GAME OVER               |");
+    mvprintw(startY + 3, startX, "|                                      |");
+    mvprintw(startY + 4, startX, "========================================");
+    attroff(A_BOLD); 
+
+    std::string scoreText = "Puntaje Final: " + std::to_string(finalScore);
+    int scoreX = (maxX - scoreText.length()) / 2;
+    mvprintw(startY + 7, scoreX, "%s", scoreText.c_str());
+
+    std::string continueText = "Presiona cualquier tecla para continuar...";
+    int continueX = (maxX - continueText.length()) / 2;
     
+    attron(A_DIM); 
+    mvprintw(startY + 11, continueX, "%s", continueText.c_str());
+    attroff(A_DIM);
     refresh();
     getch(); 
 }
