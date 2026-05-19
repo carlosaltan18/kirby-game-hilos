@@ -4,6 +4,7 @@
 class GameOverScreen {
 public:
     void show(int finalScore);
+    void showVictory(int finalScore);
 };
 
 #endif

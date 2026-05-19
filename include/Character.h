@@ -4,14 +4,13 @@
 #include "Entity.h"
 
 class Character : public Entity {
-
 protected:
     int health;
     bool grounded;
 
 public:
 
-    Character(int x, int y, int health);
+    Character(int x, int y, int width, int height, int health);
 
     void takeDamage(int damage);
 

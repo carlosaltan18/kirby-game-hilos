@@ -21,6 +21,9 @@
 
 #include "ThreadManager.h"
 
+#include "LevelManager.h"
+#include "Food.h"
+
 class Game {
 
 private:
@@ -38,6 +41,8 @@ private:
     std::vector<Enemy*> enemies;
 
     std::vector<Projectile*> projectiles;
+
+    std::vector<Food*> foods;
 
     // ======================================
     // SISTEMAS

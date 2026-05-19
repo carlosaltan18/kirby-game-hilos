@@ -30,9 +30,9 @@ bool PauseMenu::show() {
             case KEY_DOWN:
                 highlight = (highlight == 1) ? 0 : highlight + 1;
                 break;
-            case 10: // Enter
-                if (highlight == 0) return true;  // Continuar
-                if (highlight == 1) return false; // Salir
+            case 10: 
+                if (highlight == 0) return true;  
+                if (highlight == 1) return false; 
                 break;
         }
     }

@@ -1,17 +1,15 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#include "Entity.h"
+#include "Character.h" 
+#include <string>
 
-class Projectile : public Entity {
-
+class Projectile : public Character { 
 public:
-
     Projectile(int x, int y);
-
     void update() override;
-
-    char getSymbol() override;
+    
+    std::string getSymbol() override;
 };
 
 #endif

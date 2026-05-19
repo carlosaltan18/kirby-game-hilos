@@ -1,13 +1,13 @@
 #include "../../include/Character.h"
 
-Character::Character(int x, int y, int health)
-: Entity(x,y)
+Character::Character(int x, int y, int width, int height, int health)
+: Entity(x, y, width, height) 
 {
     this->health = health;
-
     grounded = false;
 }
 
+//Actualiza la salud 
 void Character::takeDamage(int damage) {
 
     health -= damage;

@@ -1,298 +1,75 @@
-#include "MainMenu.h"
-
-#include "InstructionScreen.h"
-#include "ScoreScreen.h"
-#include "PauseMenu.h"
-#include "GameOverScreen.h"
-
-#include "../../include/HUD.h"
-#include "../../include/Player.h"
-
+#include "../../include/MainMenu.h"
+#include "../../include/InstructionScreen.h"
+#include "../../include/ScoreScreen.h"
+#include "../../include/Game.h" 
 #include <ncurses.h>
-
 #include <string>
 
-// ======================================
-// SHOW MENU
-// ======================================
-
 void MainMenu::show() {
-
     int choice = 0;
-
     int highlight = 0;
 
     std::string options[4] = {
-
         "Iniciar Partida",
         "Instrucciones",
         "Puntajes Destacados",
         "Salir"
     };
 
-    // ======================================
-    // SUBMENUS
-    // ======================================
-
     InstructionScreen instructionScreen;
-
     ScoreScreen scoreScreen;
-
-    PauseMenu pauseMenu;
-
-    GameOverScreen gameOverScreen;
-
-    HUD hud;
-
-    // ======================================
-    // PLAYER DEMO
-    // ======================================
-
-    Player demoPlayer(10,10);
-
-    demoPlayer.addScore(1500);
-
-    // ======================================
-    // MENU LOOP
-    // ======================================
-
+    
     while(true) {
-
         clear();
-
-        // ==================================
-        // TITULO
-        // ==================================
-
-        mvprintw(
-            2,
-            20,
-            "============================="
-        );
-
-        mvprintw(
-            3,
-            20,
-            "      KIRBY CONSOLE ENGINE"
-        );
-
-        mvprintw(
-            4,
-            20,
-            "============================="
-        );
-
-        // ==================================
-        // OPCIONES
-        // ==================================
+        mvprintw(2, 22, " _  _______ _____  ______ __     __ ");
+        mvprintw(3, 22, "| |/ /_   _|  __ \\|  _ \\ \\ \\   / / ");
+        mvprintw(4, 22, "| ' /  | | | |__) | |_) | \\ \\_/ /  ");
+        mvprintw(5, 22, "|  <   | | |  _  /|  _ <   \\   /   ");
+        mvprintw(6, 22, "| . \\ _| |_| | \\ \\| |_) |   | |    ");
+        mvprintw(7, 22, "|_|\\_\\_____|_|  \\_\\____/    |_|    ");
+        
+        mvprintw(9, 28, "--- CONSOLE ENGINE ---");
+        mvprintw(10, 36, "(>'-')>");
 
         for(int i = 0; i < 4; i++) {
-
-            if(i == highlight)
-                attron(A_REVERSE);
-
-            mvprintw(
-                8 + (i * 2),
-                25,
-                "%s",
-                options[i].c_str()
-            );
-
-            if(i == highlight)
-                attroff(A_REVERSE);
+            if(i == highlight) {
+                attron(A_REVERSE | A_BOLD);
+                mvprintw(13 + (i * 2), 26, "  -> %-19s <-  ", options[i].c_str());
+                attroff(A_REVERSE | A_BOLD);
+            } else {
+                mvprintw(13 + (i * 2), 31, "%s", options[i].c_str());
+            }
         }
 
-        refresh();
+        mvprintw(22, 12, "[ARRIBA / ABAJO] Navegar   ---   [ENTER] Seleccionar");
 
+        refresh();
         choice = getch();
 
-        // ==================================
-        // INPUT MENU
-        // ==================================
-
         switch(choice) {
-
-            // ==============================
-            // UP
-            // ==============================
-
             case KEY_UP:
-
-                highlight =
-                    (highlight == 0)
-                    ?
-                    3
-                    :
-                    highlight - 1;
-
+                highlight = (highlight == 0) ? 3 : highlight - 1;
                 break;
-
-            // ==============================
-            // DOWN
-            // ==============================
 
             case KEY_DOWN:
-
-                highlight =
-                    (highlight == 3)
-                    ?
-                    0
-                    :
-                    highlight + 1;
-
+                highlight = (highlight == 3) ? 0 : highlight + 1;
                 break;
 
-            // ==============================
-            // ENTER
-            // ==============================
-
-            case 10:
-
-                // ==========================
-                // START GAME
-                // ==========================
-
-                if(highlight == 0) {
-
-                    bool playing = true;
-
-                    while(playing) {
-
-                        clear();
-
-                        // ==================
-                        // HUD
-                        // ==================
-
-                        hud.render(
-                            &demoPlayer,
-                            1
-                        );
-
-                        // ==================
-                        // DEMO GAME
-                        // ==================
-
-                        mvprintw(
-                            10,
-                            20,
-                            "[ SIMULACION DEL JUEGO ]"
-                        );
-
-                        mvprintw(
-                            12,
-                            10,
-                            "ESC = Pausa | Q = Game Over"
-                        );
-
-                        // ==================
-                        // PLAYER
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            20,
-                            "K"
-                        );
-
-                        // ==================
-                        // PROJECTILE
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            30,
-                            "*"
-                        );
-
-                        // ==================
-                        // ENEMY
-                        // ==================
-
-                        mvprintw(
-                            15,
-                            40,
-                            "E"
-                        );
-
-                        // ==================
-                        // PLATFORM
-                        // ==================
-
-                        mvprintw(
-                            16,
-                            20,
-                            "#########################"
-                        );
-
-                        refresh();
-
-                        // ==================
-                        // INPUT GAME
-                        // ==================
-
-                        int gameInput =
-                            getch();
-
-                        // ==================
-                        // PAUSE
-                        // ==================
-
-                        if(gameInput == 27) {
-
-                            bool resume =
-                                pauseMenu.show();
-
-                            if(!resume)
-                                playing = false;
-                        }
-
-                        // ==================
-                        // GAME OVER
-                        // ==================
-
-                        else if(
-                            gameInput == 'q'
-                            ||
-                            gameInput == 'Q'
-                        ) {
-
-                            gameOverScreen.show(
-                                1500
-                            );
-
-                            playing = false;
-                        }
-                    }
-                }
-
-                // ==========================
-                // INSTRUCTIONS
-                // ==========================
-
-                else if(highlight == 1) {
-
+            case 10: 
+                if (highlight == 0) {
+                    Game game;
+                    game.init();
+                    game.run(); 
+                } else if (highlight == 1) {
                     instructionScreen.show();
-                }
-
-                // ==========================
-                // SCORES
-                // ==========================
-
-                else if(highlight == 2) {
-
+                } else if (highlight == 2) {
                     scoreScreen.show();
+                } else if (highlight == 3) {
+                    return; 
                 }
+                break;
 
-                // ==========================
-                // EXIT
-                // ==========================
-
-                else if(highlight == 3) {
-
-                    return;
-                }
-
+            default:
                 break;
         }
     }

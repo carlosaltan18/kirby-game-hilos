@@ -1,86 +1,54 @@
 #include "../../include/PathSystem.h"
-
 #include <cmath>
+#include <map>
 
 // ======================================
-// CONSTRUCTOR
+// CEREBROS INDEPENDIENTES PARA ENEMIGOS
 // ======================================
+// Guarda el estado individual de cada enemigo
+std::map<Enemy*, int> startPositions;
+std::map<Enemy*, bool> movingLeftStates;
 
 PathSystem::PathSystem() {}
 
 // ======================================
-// MOVER HACIA OBJETIVO
+// Perseguir el objetivo
 // ======================================
-
-void PathSystem::moveTowardsTarget(
-    Enemy* enemy,
-    int targetX
-) {
-
+void PathSystem::moveTowardsTarget(Enemy* enemy, int targetX) {
     if(enemy->getX() > targetX) {
-
-        enemy->setX(
-            enemy->getX() - 1
-        );
-    }
-
-    else if(enemy->getX() < targetX) {
-
-        enemy->setX(
-            enemy->getX() + 1
-        );
+        enemy->setX(enemy->getX() - 1);
+    } else if(enemy->getX() < targetX) {
+        enemy->setX(enemy->getX() + 1);
     }
 }
 
 // ======================================
-// PATRULLA
+// Limites dinamicos de patrulla
 // ======================================
-
-void PathSystem::patrolMovement(
-    Enemy* enemy,
-    int leftLimit,
-    int rightLimit
-) {
-
-    static bool movingLeft = true;
-
-    if(movingLeft) {
-
-        enemy->setX(
-            enemy->getX() - 1
-        );
-
-        if(enemy->getX() <= leftLimit) {
-
-            movingLeft = false;
-        }
+void PathSystem::patrolMovement(Enemy* enemy, int leftLimit, int rightLimit) {
+    //registramos dónde nació
+    if (startPositions.find(enemy) == startPositions.end()) {
+        startPositions[enemy] = enemy->getX();
+        movingLeftStates[enemy] = true; // Inicia moviéndose a la izquierda
     }
 
-    else {
+    int startX = startPositions[enemy];
+    int patrolRadius = 10; // cuantos pasos camina dependiendo de su posición inicial
 
-        enemy->setX(
-            enemy->getX() + 1
-        );
-
-        if(enemy->getX() >= rightLimit) {
-
-            movingLeft = true;
+    // Mueve al enemigo basado en su propia variable de estado
+    if(movingLeftStates[enemy]) {
+        enemy->setX(enemy->getX() - 1);
+        if(enemy->getX() <= startX - patrolRadius) {
+            movingLeftStates[enemy] = false; // Da la vuelta hacia la derecha
+        }
+    } else {
+        enemy->setX(enemy->getX() + 1);
+        if(enemy->getX() >= startX + patrolRadius) {
+            movingLeftStates[enemy] = true; // Da la vuelta hacia la izquierda
         }
     }
 }
 
-// ======================================
-// DISTANCIA
-// ======================================
-
-int PathSystem::calculateDistance(
-    Enemy* enemy,
-    Player* player
-) {
-
-    return abs(
-        enemy->getX()
-        -
-        player->getX()
-    );
+int PathSystem::calculateDistance(Enemy* enemy, Player* player) {
+    return abs(enemy->getX() - player->getX());
 }
