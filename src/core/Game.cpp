@@ -67,6 +67,69 @@ void showBossScreen() {
     nodelay(stdscr, TRUE);
 }
 
+int findGroundY(TileMap &map, int x) {
+    for (int y = map.getHeight() - 2; y >= 0; y--) {
+        if (!map.isSolid(x, y) && map.isSolid(x, y + 1)) {
+            return y;
+        }
+    }
+
+    return -1;
+}
+
+void placeFoodsOnGround(std::vector<Food*> &foods, TileMap &map) {
+    for (auto food : foods) {
+        if (!food->isActive()) {
+            continue;
+        }
+
+        int x = food->getX();
+        if (x >= map.getWidth() - 2) {
+            x = map.getWidth() - 3;
+        }
+        if (x < 1) {
+            x = 1;
+        }
+
+        int groundY = findGroundY(map, x);
+        for (int offset = 1; groundY == -1 && offset < map.getWidth(); offset++) {
+            if (x + offset < map.getWidth() - 2) {
+                groundY = findGroundY(map, x + offset);
+                if (groundY != -1) {
+                    x += offset;
+                    break;
+                }
+            }
+
+            if (x - offset > 1) {
+                groundY = findGroundY(map, x - offset);
+                if (groundY != -1) {
+                    x -= offset;
+                    break;
+                }
+            }
+        }
+
+        if (groundY == -1) {
+            groundY = map.getHeight() > 2 ? map.getHeight() - 2 : 1;
+        }
+
+        food->setX(x);
+        food->setY(groundY);
+    }
+}
+
+Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
+    for (auto enemy : enemies) {
+        Boss* boss = dynamic_cast<Boss*>(enemy);
+        if (boss != nullptr && boss->isActive()) {
+            return boss;
+        }
+    }
+
+    return nullptr;
+}
+
 //Limpieza de hilos
 void* enemyThreadFunction(void* arg) {
     Enemy* enemy = (Enemy*)arg;
@@ -95,6 +158,7 @@ void Game::init() {
 
     SpawnSystem spawner;
     spawner.spawnFood(foods, 2);
+    placeFoodsOnGround(foods, map);
 
     // Iniciamos creando 3 enemigos
     enemigosCreadosEnNivel = 3;
@@ -162,8 +226,13 @@ void Game::update() {
         if (enemy->isActive()) {
             activeEnemiesCount++; // Suma al censo de enemigos vivos
 
-            enemyAI.updateEnemy(enemy, player);
-            gravitySystem.applyGravity(enemy, &map); 
+            Boss* boss = dynamic_cast<Boss*>(enemy);
+            if (boss != nullptr) {
+                boss->update();
+            } else {
+                enemyAI.updateEnemy(enemy, player);
+                gravitySystem.applyGravity(enemy, &map);
+            }
             
             if (CollisionSystem::checkAABB(
                     player->getX(), player->getY(), player->getWidth(), player->getHeight(),
@@ -204,6 +273,15 @@ void Game::update() {
                 }
             }
         }
+    }
+
+    if (currentLevel == 3 && getActiveBoss(enemies) == nullptr) {
+        nodelay(stdscr, FALSE);
+
+        GameOverScreen victoryScreen;
+        victoryScreen.showVictory(player->getScore());
+        running = false;
+        return;
     }
 
     // ======================================
@@ -247,6 +325,7 @@ void Game::update() {
 
             SpawnSystem spawner;
             spawner.spawnFood(foods, 2);
+            placeFoodsOnGround(foods, map);
         } else if(currentLevel == 3) {
             deactivateLevelEntities(enemies, projectiles, foods);
             showBossScreen();
@@ -256,7 +335,6 @@ void Game::update() {
 
             Boss* boss = new Boss(55, 16);
             enemies.push_back(boss);
-            createEnemyThread(boss);
         } else {
             running = false;
         }
@@ -268,7 +346,7 @@ void Game::render() {
     pthread_mutex_lock(&threadManager.gameMutex);
 
     renderer.render(map, camera, *player, enemies, projectiles, foods);
-    hud.render(player, currentLevel);
+    hud.render(player, currentLevel, getActiveBoss(enemies));
     refresh(); 
 
     pthread_mutex_unlock(&threadManager.gameMutex);

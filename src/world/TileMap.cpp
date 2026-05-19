@@ -43,6 +43,10 @@ bool TileMap::isSolid(int x, int y) {
         return true;
     }
     
+    if (x >= (int)grid[y].length()) {
+        return false;
+    }
+
     // Comprobar si el carácter en esa posición representa una pared o suelo
     return grid[y][x] == '#';
 }

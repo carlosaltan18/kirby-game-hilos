@@ -5,6 +5,9 @@
 class Boss : public Enemy {
 private:
     int attackTimer;
+    int moveDirection;
+    int leftLimit;
+    int rightLimit;
 public:
     Boss(int x, int y);
     void update() override;

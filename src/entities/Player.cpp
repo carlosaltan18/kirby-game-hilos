@@ -11,7 +11,7 @@ void Player::moveRight() { x += 3; }
 
 void Player::jump() {
     if(grounded) {
-        velocityY = -4; //nivel de salto normal
+        velocityY = -5; //nivel de salto normal
         grounded = false;
     } else {
         currentState = KirbyState::FLOATING;

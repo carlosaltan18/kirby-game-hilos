@@ -2,6 +2,7 @@
 #define HUD_H
 
 #include "Player.h"
+#include "Boss.h"
 
 class HUD {
 
@@ -11,7 +12,8 @@ public:
 
     void render(
         Player* player,
-        int currentLevel
+        int currentLevel,
+        Boss* boss = nullptr
     );
 };
 
