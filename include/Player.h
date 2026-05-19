@@ -26,6 +26,7 @@ public:
     
     void addScore(int points);
     int getScore();
+    void setHealth(int health);
     
     void update() override;
     std::string getSymbol() override;

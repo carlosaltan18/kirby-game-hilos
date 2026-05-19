@@ -7,7 +7,7 @@
 class Food : public Item {
 public:
     Food(int x, int y);
-    
+    void setActive(bool state);
     std::string getSymbol() override;
 };
 

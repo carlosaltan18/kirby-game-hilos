@@ -9,8 +9,14 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Projectile.h"
+#include "Food.h"
+#include "AnimationSystem.h"
 
 class Renderer {
+
+private:
+
+    AnimationSystem animationSystem;
 
 public:
 
@@ -21,7 +27,8 @@ public:
         Camera &camera,
         Player &player,
         std::vector<Enemy*> &enemies,
-        std::vector<Projectile*> &projectiles
+        std::vector<Projectile*> &projectiles,
+        std::vector<Food*> &foods
     );
 };
 

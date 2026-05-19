@@ -1,5 +1,7 @@
 #include "../../include/Renderer.h"
+#include "../../include/Boss.h"
 #include <ncurses.h>
+#include <string>
 
 Renderer::Renderer() {}
 
@@ -8,8 +10,11 @@ void Renderer::render(
     Camera &camera,
     Player &player,
     std::vector<Enemy*> &enemies,
-    std::vector<Projectile*> &projectiles
+    std::vector<Projectile*> &projectiles,
+    std::vector<Food*> &foods
 ) {
+    animationSystem.update();
+
     // 1. Limpiar el buffer
     erase(); 
     // Desplazamiento de la cámara para el scroll horizontal
@@ -35,7 +40,26 @@ void Renderer::render(
             int enemyScreenX = enemy->getX() - offsetX;
             // Comprobar frustum culling horizontal 
             if (enemyScreenX >= 0 && enemyScreenX < 80) {
-                mvprintw(enemy->getY(), enemyScreenX, "%s", enemy->getSymbol().c_str());
+                Boss* boss = dynamic_cast<Boss*>(enemy);
+                if (boss != nullptr) {
+                    mvprintw(enemy->getY(), enemyScreenX, "%s", boss->getLine1().c_str());
+                    mvprintw(enemy->getY() + 1, enemyScreenX, "%s", boss->getLine2().c_str());
+                    mvprintw(enemy->getY() + 2, enemyScreenX, "%s", boss->getLine3().c_str());
+                } else {
+                    std::string sprite = animationSystem.getEnemySprite(enemy->isActive());
+                    mvprintw(enemy->getY(), enemyScreenX, "%s", sprite.c_str());
+                }
+            }
+        }
+    }
+
+    // Renderizar Comida
+    for (auto food : foods) {
+        if (food->isActive()) {
+            int foodScreenX = food->getX() - offsetX;
+            if (foodScreenX >= 0 && foodScreenX < 80) {
+                std::string sprite = animationSystem.getItemSprite();
+                mvprintw(food->getY(), foodScreenX, "%s", sprite.c_str());
             }
         }
     }

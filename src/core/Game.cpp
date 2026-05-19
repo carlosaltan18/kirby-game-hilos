@@ -5,10 +5,69 @@
 #include <unistd.h>
 #include <cstdlib>
 #include "../../include/GameOverScreen.h"
+#include "../../include/SpawnSystem.h"
+#include "../../include/Boss.h"
+#include "../../include/Food.h"
 
-// ======================================
-// HILOS OPTIMIZADOS (Auto-Limpieza)
-// ======================================
+
+int enemigosCreadosEnNivel = 0;
+
+void* enemyThreadFunction(void* arg);
+
+void createEnemyThread(Enemy* enemy) {
+    pthread_t enemyThread;
+    pthread_create(&enemyThread, NULL, enemyThreadFunction, enemy);
+    pthread_detach(enemyThread);
+}
+
+void deactivateLevelEntities(
+    std::vector<Enemy*> &enemies,
+    std::vector<Projectile*> &projectiles,
+    std::vector<Food*> &foods
+) {
+    for (auto enemy : enemies) {
+        if (enemy->isActive()) {
+            enemy->takeDamage(enemy->getHealth());
+        }
+    }
+
+    for (auto projectile : projectiles) {
+        if (projectile->isActive()) {
+            projectile->takeDamage(projectile->getHealth());
+        }
+    }
+
+    for (auto food : foods) {
+        if (food->isActive()) {
+            food->setActive(false);
+        }
+    }
+}
+
+void showBossScreen() {
+    nodelay(stdscr, FALSE);
+    clear();
+
+    int maxY, maxX;
+    getmaxyx(stdscr, maxY, maxX);
+
+    const char* title = "!!! JEFE FINAL !!!";
+    const char* boss = "Preparate: el jefe aparecio";
+    const char* prompt = "Presiona cualquier tecla para entrar";
+
+    mvprintw(maxY / 2 - 3, (maxX - 25) / 2, "=========================");
+    mvprintw(maxY / 2 - 2, (maxX - 17) / 2, "%s", title);
+    mvprintw(maxY / 2 - 1, (maxX - 25) / 2, "=========================");
+    mvprintw(maxY / 2 + 1, (maxX - 28) / 2, "%s", boss);
+    mvprintw(maxY / 2 + 4, (maxX - 38) / 2, "%s", prompt);
+
+    refresh();
+    flushinp();
+    getch();
+    nodelay(stdscr, TRUE);
+}
+
+//Limpieza de hilos
 void* enemyThreadFunction(void* arg) {
     Enemy* enemy = (Enemy*)arg;
     
@@ -28,28 +87,36 @@ Game::Game() {
 
 void Game::init() {
     threadManager.init();
-
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
 
     player = new Player(10, 10);
     loadLevel("assets/levels/level1.txt");
 
-    // Inicializamos el nivel con 3 enemigos distribuidos
+    SpawnSystem spawner;
+    spawner.spawnFood(foods, 2);
+
+    // Iniciamos creando 3 enemigos
+    enemigosCreadosEnNivel = 3;
     for(int i = 0; i < 3; i++) {
         Enemy* e = new Enemy(30 + (i * 20), 5);
         enemies.push_back(e);
-        
-        pthread_t enemyThread;
-        pthread_create(&enemyThread, NULL, enemyThreadFunction, e);
-        pthread_detach(enemyThread); // liberar recursos
+        createEnemyThread(e);
     }
 }
 
 void Game::loadLevel(std::string levelPath) {
     LevelManager levelManager;
-    int levelNumber = (levelPath.find("level2") != std::string::npos) ? 2 : 1;
+    int levelNumber = 1;
+
+    if (levelPath.find("boss") != std::string::npos) {
+        levelNumber = 3;
+    } else if (levelPath.find("level2") != std::string::npos) {
+        levelNumber = 2;
+    }
+
     levelManager.loadLevel(levelNumber, &map);
+    enemigosCreadosEnNivel = 0;
 }
 
 void Game::processInput() {
@@ -88,7 +155,7 @@ void Game::update() {
     player->update();
     gravitySystem.applyGravity(player, &map);
 
-    int activeEnemiesCount = 0; //
+    int activeEnemiesCount = 0;
 
     // 1. Actualizar Enemigos y contar los sobrevivientes
     for(auto enemy : enemies) {
@@ -107,22 +174,19 @@ void Game::update() {
         }
     }
 
-    // ======================================
-    // 2. SISTEMA DE RESPAWN DINÁMICO
-    // ======================================
-    // Si mataste enemigos generamos reemplazos
-    if (activeEnemiesCount < 3) {
-        int spawnX = player->getX() + 40 + (rand() % 20); 
+    // RESPAWN DINÁMICO
+    // Si mataste enemigos se generanr máximo 5
+    if (currentLevel < 3 && activeEnemiesCount < 3 && enemigosCreadosEnNivel < 5) {
+        int spawnX = player->getX() + 40 + (rand() % 20);
+
         if (spawnX >= map.getWidth() - 10) {
             spawnX = map.getWidth() - 15;
         }
 
         Enemy* newEnemy = new Enemy(spawnX, 5);
         enemies.push_back(newEnemy);
-
-        pthread_t enemyThread;
-        pthread_create(&enemyThread, NULL, enemyThreadFunction, newEnemy);
-        pthread_detach(enemyThread); 
+        enemigosCreadosEnNivel++;
+        createEnemyThread(newEnemy);
     }
 
     // 3. Actualizar Proyectiles
@@ -138,6 +202,23 @@ void Game::update() {
                     projectile->takeDamage(1);
                     player->addScore(100);     
                 }
+            }
+        }
+    }
+
+    // ======================================
+    // COLISIONES CON COMIDA (CURACIÓN)
+    // ======================================
+    for (auto food : foods) {
+        if (food->isActive()) {
+            if (CollisionSystem::checkAABB(
+                    player->getX(), player->getY(), player->getWidth(), player->getHeight(),
+                    food->getX(), food->getY(), food->getWidth(), food->getHeight()
+                )) {
+
+                food->setActive(false);
+                player->setHealth(player->getHealth() + 1);
+                player->addScore(50);
             }
         }
     }
@@ -159,8 +240,25 @@ void Game::update() {
     if(player->getX() >= map.getWidth() - 5) {
         currentLevel++;
         if(currentLevel == 2) {
+            deactivateLevelEntities(enemies, projectiles, foods);
             loadLevel("assets/levels/level2.txt");
             player->setX(5);
+            player->setY(10);
+
+            SpawnSystem spawner;
+            spawner.spawnFood(foods, 2);
+        } else if(currentLevel == 3) {
+            deactivateLevelEntities(enemies, projectiles, foods);
+            showBossScreen();
+            loadLevel("assets/levels/boss.txt");
+            player->setX(5);
+            player->setY(10);
+
+            Boss* boss = new Boss(55, 16);
+            enemies.push_back(boss);
+            createEnemyThread(boss);
+        } else {
+            running = false;
         }
     }
 
@@ -169,7 +267,7 @@ void Game::update() {
 void Game::render() {
     pthread_mutex_lock(&threadManager.gameMutex);
 
-    renderer.render(map, camera, *player, enemies, projectiles);
+    renderer.render(map, camera, *player, enemies, projectiles, foods);
     hud.render(player, currentLevel);
     refresh(); 
 
