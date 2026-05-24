@@ -12,7 +12,9 @@ static std::string askPlayerName(int y, int maxX) {
     std::string prompt = "Nombre: ";
     int promptX = (maxX - 32) / 2;
 
+    if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD);
     mvprintw(y, promptX, "%s", prompt.c_str());
+    if (has_colors()) attroff(COLOR_PAIR(4) | A_BOLD);
     getnstr(nameBuffer, 23);
 
     noecho();
@@ -36,17 +38,21 @@ void GameOverScreen::show(int finalScore) {
     int startX = (maxX - boxWidth) / 2; 
     int startY = (maxY / 2) - 5;        
 
-    attron(A_BOLD); 
+    if (has_colors()) attron(COLOR_PAIR(8) | A_BOLD);
+    else attron(A_BOLD);
     mvprintw(startY,     startX, "========================================");
     mvprintw(startY + 1, startX, "|                                      |");
     mvprintw(startY + 2, startX, "|              GAME OVER               |");
     mvprintw(startY + 3, startX, "|                                      |");
     mvprintw(startY + 4, startX, "========================================");
-    attroff(A_BOLD); 
+    if (has_colors()) attroff(COLOR_PAIR(8) | A_BOLD);
+    else attroff(A_BOLD);
 
     std::string scoreText = "Puntaje Final: " + std::to_string(finalScore);
     int scoreX = (maxX - scoreText.length()) / 2;
+    if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
     mvprintw(startY + 7, scoreX, "%s", scoreText.c_str());
+    if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
 
     std::string playerName = askPlayerName(startY + 9, maxX);
     ScoreManager::saveScore(finalScore, playerName);
@@ -54,9 +60,11 @@ void GameOverScreen::show(int finalScore) {
     std::string continueText = "Presiona cualquier tecla para continuar...";
     int continueX = (maxX - continueText.length()) / 2;
     
-    attron(A_DIM); 
+    if (has_colors()) attron(COLOR_PAIR(4));
+    else attron(A_DIM);
     mvprintw(startY + 12, continueX, "%s", continueText.c_str());
-    attroff(A_DIM);
+    if (has_colors()) attroff(COLOR_PAIR(4));
+    else attroff(A_DIM);
     refresh();
     getch(); 
 }
@@ -71,17 +79,21 @@ void GameOverScreen::showVictory(int finalScore) {
     int startX = (maxX - boxWidth) / 2;
     int startY = (maxY / 2) - 5;
 
-    attron(A_BOLD);
+    if (has_colors()) attron(COLOR_PAIR(5) | A_BOLD);
+    else attron(A_BOLD);
     mvprintw(startY,     startX, "============================================");
     mvprintw(startY + 1, startX, "|                                          |");
     mvprintw(startY + 2, startX, "|              JEFE DERROTADO             |");
     mvprintw(startY + 3, startX, "|                                          |");
     mvprintw(startY + 4, startX, "============================================");
-    attroff(A_BOLD);
+    if (has_colors()) attroff(COLOR_PAIR(5) | A_BOLD);
+    else attroff(A_BOLD);
 
     std::string scoreText = "Puntaje Final: " + std::to_string(finalScore);
     int scoreX = (maxX - scoreText.length()) / 2;
+    if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
     mvprintw(startY + 7, scoreX, "%s", scoreText.c_str());
+    if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
 
     std::string playerName = askPlayerName(startY + 9, maxX);
     ScoreManager::saveScore(finalScore, playerName);
@@ -89,9 +101,11 @@ void GameOverScreen::showVictory(int finalScore) {
     std::string continueText = "Presiona cualquier tecla para continuar...";
     int continueX = (maxX - continueText.length()) / 2;
 
-    attron(A_DIM);
+    if (has_colors()) attron(COLOR_PAIR(4));
+    else attron(A_DIM);
     mvprintw(startY + 12, continueX, "%s", continueText.c_str());
-    attroff(A_DIM);
+    if (has_colors()) attroff(COLOR_PAIR(4));
+    else attroff(A_DIM);
     refresh();
     getch();
 }

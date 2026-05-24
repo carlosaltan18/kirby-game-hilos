@@ -14,7 +14,8 @@ class Player : public Character {
 private:
     int score;
     KirbyState currentState;
-    int floatTimer; 
+    int floatTimer;
+    bool facingRight;
 
 public:
     Player(int x, int y);
@@ -26,6 +27,8 @@ public:
     
     void addScore(int points);
     int getScore();
+    bool isFacingRight();
+    int getProjectileDirection();
     void setHealth(int health);
     
     void update() override;

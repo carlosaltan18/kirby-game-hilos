@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <ctime>
 #include "../../include/GameOverScreen.h"
 #include "../../include/SpawnSystem.h"
 #include "../../include/Boss.h"
@@ -55,11 +56,19 @@ void showBossScreen() {
     const char* boss = "Preparate: el jefe aparecio";
     const char* prompt = "Presiona cualquier tecla para entrar";
 
+    if (has_colors()) attron(COLOR_PAIR(8) | A_BOLD);
     mvprintw(maxY / 2 - 3, (maxX - 25) / 2, "=========================");
     mvprintw(maxY / 2 - 2, (maxX - 17) / 2, "%s", title);
     mvprintw(maxY / 2 - 1, (maxX - 25) / 2, "=========================");
+    if (has_colors()) attroff(COLOR_PAIR(8) | A_BOLD);
+
+    if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
     mvprintw(maxY / 2 + 1, (maxX - 28) / 2, "%s", boss);
+    if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
+
+    if (has_colors()) attron(COLOR_PAIR(4));
     mvprintw(maxY / 2 + 4, (maxX - 38) / 2, "%s", prompt);
+    if (has_colors()) attroff(COLOR_PAIR(4));
 
     refresh();
     flushinp();
@@ -119,6 +128,31 @@ void placeFoodsOnGround(std::vector<Food*> &foods, TileMap &map) {
     }
 }
 
+int countActiveFoods(std::vector<Food*> &foods) {
+    int activeFoods = 0;
+
+    for (auto food : foods) {
+        if (food->isActive()) {
+            activeFoods++;
+        }
+    }
+
+    return activeFoods;
+}
+
+void spawnFoodsOnGround(std::vector<Food*> &foods, TileMap &map, int amount) {
+    SpawnSystem spawner;
+    size_t oldSize = foods.size();
+
+    spawner.spawnFood(foods, amount);
+
+    for (size_t i = oldSize; i < foods.size(); i++) {
+        std::vector<Food*> newFood;
+        newFood.push_back(foods[i]);
+        placeFoodsOnGround(newFood, map);
+    }
+}
+
 Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
     for (auto enemy : enemies) {
         Boss* boss = dynamic_cast<Boss*>(enemy);
@@ -152,13 +186,12 @@ void Game::init() {
     threadManager.init();
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
+    srand(time(NULL));
 
     player = new Player(10, 10);
     loadLevel("assets/levels/level1.txt");
 
-    SpawnSystem spawner;
-    spawner.spawnFood(foods, 2);
-    placeFoodsOnGround(foods, map);
+    spawnFoodsOnGround(foods, map, 5);
 
     // Iniciamos creando 3 enemigos
     enemigosCreadosEnNivel = 3;
@@ -197,7 +230,11 @@ void Game::processInput() {
             for (auto enemy : enemies) {
                 if (enemy->isActive()) {
                     int distance = abs(player->getX() - enemy->getX());
-                    if (distance <= 5 && player->getY() == enemy->getY()) {
+                    bool enemyInFront = player->isFacingRight()
+                        ? enemy->getX() >= player->getX()
+                        : enemy->getX() <= player->getX();
+
+                    if (enemyInFront && distance <= 8 && player->getY() == enemy->getY()) {
                         enemy->takeDamage(1); 
                         player->addScore(100);
                     }
@@ -208,7 +245,15 @@ void Game::processInput() {
         case 'h': case 'H': player->stopInhaling(); break;
         
         case 'k': case 'K':
-            projectiles.push_back(new Projectile(player->getX() + 8, player->getY()));
+            if (player->isFacingRight()) {
+                projectiles.push_back(new Projectile(player->getX() + player->getWidth(), player->getY(), 1));
+            } else {
+                int spawnX = player->getX() - 4;
+                if (spawnX < 0) {
+                    spawnX = 0;
+                }
+                projectiles.push_back(new Projectile(spawnX, player->getY(), -1));
+            }
             break;
 
         case 'q': case 'Q': running = false; break;
@@ -258,6 +303,10 @@ void Game::update() {
         createEnemyThread(newEnemy);
     }
 
+    if (currentLevel < 3 && countActiveFoods(foods) < 3) {
+        spawnFoodsOnGround(foods, map, 2);
+    }
+
     // 3. Actualizar Proyectiles
     for (auto projectile : projectiles) {
         if (projectile->isActive()) {
@@ -295,8 +344,8 @@ void Game::update() {
                 )) {
 
                 food->setActive(false);
-                player->setHealth(player->getHealth() + 1);
-                player->addScore(50);
+                player->setHealth(player->getHealth() + food->getHealAmount());
+                player->addScore(food->getScoreValue());
             }
         }
     }
@@ -323,9 +372,7 @@ void Game::update() {
             player->setX(5);
             player->setY(10);
 
-            SpawnSystem spawner;
-            spawner.spawnFood(foods, 2);
-            placeFoodsOnGround(foods, map);
+            spawnFoodsOnGround(foods, map, 5);
         } else if(currentLevel == 3) {
             deactivateLevelEntities(enemies, projectiles, foods);
             showBossScreen();

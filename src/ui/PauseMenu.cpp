@@ -9,15 +9,29 @@ bool PauseMenu::show() {
 
     while(true) {
         clear();
-        
+
+        if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD);
+        else attron(A_BOLD);
         mvprintw(5, 25, "==================");
         mvprintw(6, 25, "      PAUSA       ");
         mvprintw(7, 25, "==================");
+        if (has_colors()) attroff(COLOR_PAIR(4) | A_BOLD);
+        else attroff(A_BOLD);
 
         for(int i = 0; i < 2; i++) {
-            if(i == highlight) attron(A_REVERSE);
+            if(i == highlight) {
+                if (has_colors()) attron(COLOR_PAIR(6) | A_BOLD);
+                else attron(A_REVERSE);
+            } else if (has_colors()) {
+                attron(COLOR_PAIR(4));
+            }
             mvprintw(10 + (i*2), 25, "%s", options[i].c_str());
-            if(i == highlight) attroff(A_REVERSE);
+            if(i == highlight) {
+                if (has_colors()) attroff(COLOR_PAIR(6) | A_BOLD);
+                else attroff(A_REVERSE);
+            } else if (has_colors()) {
+                attroff(COLOR_PAIR(4));
+            }
         }
 
         refresh();

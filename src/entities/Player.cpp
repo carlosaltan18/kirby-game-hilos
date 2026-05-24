@@ -4,10 +4,18 @@ Player::Player(int x, int y) : Character(x, y, 7, 1, 3) {
     score = 0;
     currentState = KirbyState::NORMAL;
     floatTimer = 0;
+    facingRight = true;
 }
 
-void Player::moveLeft() { x -= 3; }
-void Player::moveRight() { x += 3; }
+void Player::moveLeft() {
+    x -= 3;
+    facingRight = false;
+}
+
+void Player::moveRight() {
+    x += 3;
+    facingRight = true;
+}
 
 void Player::jump() {
     if(grounded) {
@@ -28,6 +36,8 @@ void Player::inhale() { currentState = KirbyState::INHALING; }
 void Player::stopInhaling() { currentState = KirbyState::NORMAL; }
 void Player::addScore(int points) { score += points; }
 int Player::getScore() { return score; }
+bool Player::isFacingRight() { return facingRight; }
+int Player::getProjectileDirection() { return facingRight ? 1 : -1; }
 
 void Player::update() {
     // Calcula la gravedad y el movimiento vertical
@@ -56,9 +66,13 @@ void Player::update() {
 
 std::string Player::getSymbol() {
     switch(currentState) {
-        case KirbyState::NORMAL:   return "(>'-')>";
-        case KirbyState::FLOATING: return "(0)";
-        case KirbyState::INHALING: return "<('-'<)";
-        default:                   return "(>'-')>";
+        case KirbyState::NORMAL:
+            return facingRight ? "(>'-')>" : "<('-'<)";
+        case KirbyState::FLOATING:
+            return facingRight ? "(^o^*)>" : "<(*^o^)";
+        case KirbyState::INHALING:
+            return facingRight ? "(>'O')>" : "<('O'<)";
+        default:
+            return facingRight ? "(>'-')>" : "<('-'<)";
     }
 }
