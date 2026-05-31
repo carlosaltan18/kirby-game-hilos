@@ -24,18 +24,22 @@
 #include "LevelManager.h"
 #include "Food.h"
 
+// Coordina una partida completa: entrada, fisica, IA, render y cambio de nivel.
+// La idea es que Game conecte sistemas, no que cada sistema viva aqui adentro.
 class Game {
 
 private:
 
     bool running;
 
+    // Nivel actual del flujo jugable: 1, 2 o pelea contra jefe.
     int currentLevel;
 
     // ======================================
     // ENTIDADES
     // ======================================
 
+    // Se guardan como punteros porque las entidades se crean y desactivan durante la partida.
     Player* player;
 
     std::vector<Enemy*> enemies;

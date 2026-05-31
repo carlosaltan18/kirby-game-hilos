@@ -4,6 +4,8 @@
 #include "Enemy.h"
 #include "Player.h"
 
+// Rutinas de movimiento para enemigos normales. Mantiene memoria de patrulla
+// por enemigo en el .cpp para que cada uno tenga su propio recorrido.
 class PathSystem {
 
 public:

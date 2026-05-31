@@ -12,11 +12,15 @@
 #include "Food.h"
 #include "AnimationSystem.h"
 
+// Dibuja el estado visible del juego en ncurses. No decide fisica ni reglas:
+// solo traduce mapa, entidades y HUD visual a caracteres en pantalla.
 class Renderer {
 
 private:
 
+    // Avanza sprites simples y el fondo movil sin depender del loop de Game.
     AnimationSystem animationSystem;
+    int backgroundFrame;
 
 public:
 

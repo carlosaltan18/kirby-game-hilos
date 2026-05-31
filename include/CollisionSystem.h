@@ -1,6 +1,8 @@
 #ifndef COLLISION_SYSTEM_H
 #define COLLISION_SYSTEM_H
 
+// Colisiones rectangulares simples. Es suficiente para sprites ASCII porque
+// cada entidad tiene una caja definida por x, y, width y height.
 class CollisionSystem {
 public:
     static bool checkAABB(

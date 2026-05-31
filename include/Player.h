@@ -10,11 +10,14 @@ enum class KirbyState {
     INHALING
 };
 
+// Kirby guarda su estado de animacion y tambien hacia donde mira.
+// Esa direccion se usa para absorber y disparar al lado correcto.
 class Player : public Character {
 private:
     int score;
     KirbyState currentState;
     int floatTimer;
+    // true = mira a la derecha, false = mira a la izquierda.
     bool facingRight;
 
 public:

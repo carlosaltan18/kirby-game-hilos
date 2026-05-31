@@ -3,6 +3,8 @@
 
 #include "Entity.h"
 
+// Entidad con vida y estado de suelo. Sirve para cualquier actor que pueda
+// recibir dano o verse afectado por gravedad.
 class Character : public Entity {
 protected:
     int health;

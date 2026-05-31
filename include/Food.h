@@ -4,6 +4,8 @@
 #include "Item.h"
 #include <string>
 
+// Consumible/item del mapa. El tipo se decide al crearse y puede curar,
+// dar puntos, o ambas cosas segun sus valores.
 class Food : public Item {
 private:
     int foodType;

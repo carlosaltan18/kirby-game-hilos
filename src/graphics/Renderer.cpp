@@ -3,7 +3,39 @@
 #include <ncurses.h>
 #include <string>
 
-Renderer::Renderer() {}
+Renderer::Renderer() {
+    backgroundFrame = 0;
+}
+
+static void drawAsciiCloud(int startX, int startY, int mapHeight) {
+    std::string cloud[3] = {
+        "    .--.        ",
+        " .-(    ).-.    ",
+        "(___.__)____)   "
+    };
+
+    if (has_colors()) attron(COLOR_PAIR(1) | A_DIM);
+
+    for (int row = 0; row < 3; row++) {
+        int screenY = startY + row;
+        if (screenY < 3 || screenY >= mapHeight - 2) {
+            continue;
+        }
+
+        for (int col = 0; col < (int)cloud[row].length(); col++) {
+            if (cloud[row][col] == ' ') {
+                continue;
+            }
+
+            int screenX = startX + col;
+            if (screenX >= 0 && screenX < 80) {
+                mvaddch(screenY, screenX, cloud[row][col]);
+            }
+        }
+    }
+
+    if (has_colors()) attroff(COLOR_PAIR(1) | A_DIM);
+}
 
 void Renderer::render(
     TileMap &map,
@@ -14,17 +46,26 @@ void Renderer::render(
     std::vector<Food*> &foods
 ) {
     animationSystem.update();
+    backgroundFrame++;
 
     // 1. Limpiar el buffer
-    erase(); 
+    erase();
     // Desplazamiento de la cámara para el scroll horizontal
     int offsetX = camera.getOffsetX();
     std::vector<std::string>& grid = map.getGrid();
+
+    int slowFrame = backgroundFrame / 8;
+    int firstCloudX = 80 - (slowFrame % 120);
+    int secondCloudX = 80 - ((slowFrame + 55) % 120);
+
+    drawAsciiCloud(firstCloudX, 4, map.getHeight());
+    drawAsciiCloud(secondCloudX, 10, map.getHeight());
+
     // Renderizar el mapa
     for (int y = 0; y < map.getHeight(); y++) {
         std::string visibleRow = "";
         if (offsetX < (int)grid[y].length()) {
-            visibleRow = grid[y].substr(offsetX, 80); 
+            visibleRow = grid[y].substr(offsetX, 80);
         }
 
         for (int x = 0; x < (int)visibleRow.length(); x++) {
@@ -37,7 +78,7 @@ void Renderer::render(
                 attron(COLOR_PAIR(3) | A_BOLD);
                 mvaddch(y, x, tile);
                 attroff(COLOR_PAIR(3) | A_BOLD);
-            } else {
+            } else if (tile != ' ') {
                 mvaddch(y, x, tile);
             }
         }
@@ -52,9 +93,9 @@ void Renderer::render(
         if (has_colors()) attroff(COLOR_PAIR(1) | A_BOLD);
     }
     for (auto enemy : enemies) {
-        if (enemy->isActive()) { 
+        if (enemy->isActive()) {
             int enemyScreenX = enemy->getX() - offsetX;
-            // Comprobar frustum culling horizontal 
+            // Comprobar frustum culling horizontal
             if (enemyScreenX >= 0 && enemyScreenX < 80) {
                 Boss* boss = dynamic_cast<Boss*>(enemy);
                 if (boss != nullptr) {
@@ -89,7 +130,7 @@ void Renderer::render(
     // Renderizar Proyectiles
     for (auto projectile : projectiles) {
         if (projectile->isActive()) { // Verificar que el proyectil no haya colisionado
-            int projScreenX = projectile->getX() - offsetX;            
+            int projScreenX = projectile->getX() - offsetX;
             if (projScreenX >= 0 && projScreenX < 80) {
                 if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
                 mvprintw(projectile->getY(), projScreenX, "%s", projectile->getSymbol().c_str());

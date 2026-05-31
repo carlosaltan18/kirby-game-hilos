@@ -6,6 +6,8 @@
 #include "Enemy.h"
 #include "Food.h"
 
+// Crea entidades nuevas para el nivel. Game decide cuando llamarlo y luego
+// acomoda las comidas sobre suelo real.
 class SpawnSystem {
 
 public:

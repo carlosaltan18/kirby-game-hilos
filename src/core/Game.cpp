@@ -12,6 +12,7 @@
 
 
 int enemigosCreadosEnNivel = 0;
+int bossMinionTimer = 0;
 
 void* enemyThreadFunction(void* arg);
 
@@ -45,6 +46,7 @@ void deactivateLevelEntities(
     }
 }
 
+// Pantalla breve para separar el cambio de nivel de la pelea final.
 void showBossScreen() {
     nodelay(stdscr, FALSE);
     clear();
@@ -86,6 +88,7 @@ int findGroundY(TileMap &map, int x) {
     return -1;
 }
 
+// Los items nacen con X aleatoria, pero aqui se corrigen para quedar sobre suelo.
 void placeFoodsOnGround(std::vector<Food*> &foods, TileMap &map) {
     for (auto food : foods) {
         if (!food->isActive()) {
@@ -153,6 +156,7 @@ void spawnFoodsOnGround(std::vector<Food*> &foods, TileMap &map, int amount) {
     }
 }
 
+// Evita que varias partes de Game repitan el recorrido de enemigos buscando jefe.
 Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
     for (auto enemy : enemies) {
         Boss* boss = dynamic_cast<Boss*>(enemy);
@@ -162,6 +166,18 @@ Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
     }
 
     return nullptr;
+}
+
+// Caer fuera del mapa castiga al jugador sin dejarlo atrapado bajo el escenario.
+void resetPlayerAfterFall(Player* player, int currentLevel) {
+    player->takeDamage(1);
+    player->setX(5);
+
+    if (currentLevel == 3) {
+        player->setY(10);
+    } else {
+        player->setY(6);
+    }
 }
 
 //Limpieza de hilos
@@ -262,6 +278,11 @@ void Game::processInput() {
 
 void Game::update() {
     player->update();
+
+    if (player->getY() >= map.getHeight() - player->getHeight()) {
+        resetPlayerAfterFall(player, currentLevel);
+    }
+
     gravitySystem.applyGravity(player, &map);
 
     int activeEnemiesCount = 0;
@@ -286,6 +307,30 @@ void Game::update() {
                 player->takeDamage(1);
             }
         }
+    }
+
+    Boss* activeBoss = getActiveBoss(enemies);
+    if (currentLevel == 3 && activeBoss != nullptr) {
+        bossMinionTimer++;
+        if (bossMinionTimer >= 90 && activeEnemiesCount < 4) {
+            int spawnX = activeBoss->getX() > player->getX()
+                ? activeBoss->getX() - 18
+                : activeBoss->getX() + 18;
+
+            if (spawnX < 2) {
+                spawnX = 2;
+            }
+            if (spawnX > map.getWidth() - 8) {
+                spawnX = map.getWidth() - 8;
+            }
+
+            Enemy* minion = new Enemy(spawnX, 5);
+            enemies.push_back(minion);
+            createEnemyThread(minion);
+            bossMinionTimer = 0;
+        }
+    } else {
+        bossMinionTimer = 0;
     }
 
     // RESPAWN DINÁMICO

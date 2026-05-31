@@ -140,6 +140,9 @@ Control principal del juego.
 | ThreadManager | Manejo de pthreads |
 | Timer | Control de tiempo |
 
+Para entender mejor que coordina `Game.cpp` durante una partida, revisa
+[`docs/core-game.md`](docs/core-game.md).
+
 ---
 
 ## 🔹 Graphics

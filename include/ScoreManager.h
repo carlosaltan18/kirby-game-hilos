@@ -4,6 +4,8 @@
 #include <string>
 #include <utility>
 
+// Lee y guarda los mejores puntajes. El archivo actual es JSON, pero tambien
+// puede cargar el txt viejo como respaldo.
 class ScoreManager {
 public:
     static void saveScore(int score, const std::string& playerName);

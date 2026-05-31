@@ -4,6 +4,8 @@
 #include "Player.h"
 #include "Boss.h"
 
+// Capa superior de informacion durante la partida: vida, score, nivel y vida
+// del jefe cuando hay uno activo.
 class HUD {
 
 public:

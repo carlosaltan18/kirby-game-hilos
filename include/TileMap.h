@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+// Representa el mapa como filas de texto. El caracter '#' es el suelo/pared
+// que usan fisica y colisiones para saber que es solido.
 class TileMap {
 private:
     std::vector<std::string> grid;

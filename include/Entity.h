@@ -3,13 +3,15 @@
 
 #include <string>
 
+// Base comun para todo lo que tiene posicion, tamano y puede aparecer activo
+// en el mundo. Player, enemigos, proyectiles e items parten de aqui.
 class Entity {
 protected:
     int x;
     int y;
-    int width;   
-    int height;  
-    
+    int width;
+    int height;
+
     int velocityX;
     int velocityY;
     bool active;
