@@ -32,6 +32,10 @@ void Boss::update() {
     }
 }
 
+bool Boss::canBeAbsorbed() {
+    return false;
+}
+
 std::string Boss::getSymbol() { return "(o_o)"; }
 std::string Boss::getLine1() { return "/===\\"; }
 std::string Boss::getLine2() { return "( ò_ó )"; }

@@ -12,9 +12,13 @@ private:
     std::string basePath;
 
 public:
+    // Configura la ruta base de los archivos de nivel.
     LevelManager();
+
+    // Carga el nivel solicitado dentro del TileMap recibido.
     bool loadLevel(int levelNumber, TileMap* map);
-    
+
+    // Devuelve el ultimo nivel cargado.
     int getCurrentLevel();
 };
 

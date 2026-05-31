@@ -5,6 +5,7 @@ class MainMenu {
 
 public:
 
+    // Muestra opciones principales y lanza el modo seleccionado.
     void show();
 };
 

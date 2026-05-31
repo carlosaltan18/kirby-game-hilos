@@ -3,8 +3,11 @@
 
 class GameOverScreen {
 public:
-    void show(int finalScore);
-    void showVictory(int finalScore);
+    // Muestra derrota, guarda puntaje y devuelve si se reinicia.
+    bool show(int finalScore);
+
+    // Muestra victoria, guarda puntaje y devuelve si se reinicia.
+    bool showVictory(int finalScore);
 };
 
 #endif

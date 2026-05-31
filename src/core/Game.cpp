@@ -1,227 +1,71 @@
 #include "../../include/Game.h"
-#include "../../include/LevelManager.h" 
-#include "../../include/CollisionSystem.h"
-#include <ncurses.h>
-#include <unistd.h>
+#include "../../include/FireEnemy.h"
+#include "../../include/LevelManager.h"
+#include "GameInternals.h"
 #include <cstdlib>
 #include <ctime>
-#include "../../include/GameOverScreen.h"
-#include "../../include/SpawnSystem.h"
-#include "../../include/Boss.h"
-#include "../../include/Food.h"
-
+#include <ncurses.h>
+#include <unistd.h>
 
 int enemigosCreadosEnNivel = 0;
 int bossMinionTimer = 0;
+int contactDamageCooldown = 0;
 
-void* enemyThreadFunction(void* arg);
-
-void createEnemyThread(Enemy* enemy) {
-    pthread_t enemyThread;
-    pthread_create(&enemyThread, NULL, enemyThreadFunction, enemy);
-    pthread_detach(enemyThread);
-}
-
-void deactivateLevelEntities(
-    std::vector<Enemy*> &enemies,
-    std::vector<Projectile*> &projectiles,
-    std::vector<Food*> &foods
-) {
-    for (auto enemy : enemies) {
-        if (enemy->isActive()) {
-            enemy->takeDamage(enemy->getHealth());
-        }
-    }
-
-    for (auto projectile : projectiles) {
-        if (projectile->isActive()) {
-            projectile->takeDamage(projectile->getHealth());
-        }
-    }
-
-    for (auto food : foods) {
-        if (food->isActive()) {
-            food->setActive(false);
-        }
-    }
-}
-
-// Pantalla breve para separar el cambio de nivel de la pelea final.
-void showBossScreen() {
-    nodelay(stdscr, FALSE);
-    clear();
-
-    int maxY, maxX;
-    getmaxyx(stdscr, maxY, maxX);
-
-    const char* title = "!!! JEFE FINAL !!!";
-    const char* boss = "Preparate: el jefe aparecio";
-    const char* prompt = "Presiona cualquier tecla para entrar";
-
-    if (has_colors()) attron(COLOR_PAIR(8) | A_BOLD);
-    mvprintw(maxY / 2 - 3, (maxX - 25) / 2, "=========================");
-    mvprintw(maxY / 2 - 2, (maxX - 17) / 2, "%s", title);
-    mvprintw(maxY / 2 - 1, (maxX - 25) / 2, "=========================");
-    if (has_colors()) attroff(COLOR_PAIR(8) | A_BOLD);
-
-    if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
-    mvprintw(maxY / 2 + 1, (maxX - 28) / 2, "%s", boss);
-    if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
-
-    if (has_colors()) attron(COLOR_PAIR(4));
-    mvprintw(maxY / 2 + 4, (maxX - 38) / 2, "%s", prompt);
-    if (has_colors()) attroff(COLOR_PAIR(4));
-
-    refresh();
-    flushinp();
-    getch();
-    nodelay(stdscr, TRUE);
-}
-
-int findGroundY(TileMap &map, int x) {
-    for (int y = map.getHeight() - 2; y >= 0; y--) {
-        if (!map.isSolid(x, y) && map.isSolid(x, y + 1)) {
-            return y;
-        }
-    }
-
-    return -1;
-}
-
-// Los items nacen con X aleatoria, pero aqui se corrigen para quedar sobre suelo.
-void placeFoodsOnGround(std::vector<Food*> &foods, TileMap &map) {
-    for (auto food : foods) {
-        if (!food->isActive()) {
-            continue;
-        }
-
-        int x = food->getX();
-        if (x >= map.getWidth() - 2) {
-            x = map.getWidth() - 3;
-        }
-        if (x < 1) {
-            x = 1;
-        }
-
-        int groundY = findGroundY(map, x);
-        for (int offset = 1; groundY == -1 && offset < map.getWidth(); offset++) {
-            if (x + offset < map.getWidth() - 2) {
-                groundY = findGroundY(map, x + offset);
-                if (groundY != -1) {
-                    x += offset;
-                    break;
-                }
-            }
-
-            if (x - offset > 1) {
-                groundY = findGroundY(map, x - offset);
-                if (groundY != -1) {
-                    x -= offset;
-                    break;
-                }
-            }
-        }
-
-        if (groundY == -1) {
-            groundY = map.getHeight() > 2 ? map.getHeight() - 2 : 1;
-        }
-
-        food->setX(x);
-        food->setY(groundY);
-    }
-}
-
-int countActiveFoods(std::vector<Food*> &foods) {
-    int activeFoods = 0;
-
-    for (auto food : foods) {
-        if (food->isActive()) {
-            activeFoods++;
-        }
-    }
-
-    return activeFoods;
-}
-
-void spawnFoodsOnGround(std::vector<Food*> &foods, TileMap &map, int amount) {
-    SpawnSystem spawner;
-    size_t oldSize = foods.size();
-
-    spawner.spawnFood(foods, amount);
-
-    for (size_t i = oldSize; i < foods.size(); i++) {
-        std::vector<Food*> newFood;
-        newFood.push_back(foods[i]);
-        placeFoodsOnGround(newFood, map);
-    }
-}
-
-// Evita que varias partes de Game repitan el recorrido de enemigos buscando jefe.
-Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
-    for (auto enemy : enemies) {
-        Boss* boss = dynamic_cast<Boss*>(enemy);
-        if (boss != nullptr && boss->isActive()) {
-            return boss;
-        }
-    }
-
-    return nullptr;
-}
-
-// Caer fuera del mapa castiga al jugador sin dejarlo atrapado bajo el escenario.
-void resetPlayerAfterFall(Player* player, int currentLevel) {
-    player->takeDamage(1);
-    player->setX(5);
-
-    if (currentLevel == 3) {
-        player->setY(10);
-    } else {
-        player->setY(6);
-    }
-}
-
-//Limpieza de hilos
-void* enemyThreadFunction(void* arg) {
-    Enemy* enemy = (Enemy*)arg;
-    
-    // El hilo SOLO corre mientras el enemigo tenga vida.
-    // Al morir, el bucle se rompe y el hilo se cierra limpiamente.
-    while(enemy->isActive()) { 
-        enemy->update();
-        usleep(100000);
-    }
-    return NULL;
-}
-
-Game::Game() {
+Game::Game(bool computerMode) {
     running = true;
+    this->computerMode = computerMode;
+    playerThreadActive = false;
+    eventThreadActive = false;
+    restartRequested = false;
+    actionCooldown = 0;
+    eventSignalCounter = 0;
+    aiDecisionTimer = 0;
+    aiBehavior = 0;
+    aiTargetX = 60;
     currentLevel = 1;
+    enemigosCreadosEnNivel = 0;
+    bossMinionTimer = 0;
+    contactDamageCooldown = 0;
 }
 
 void Game::init() {
+    // La partida arma primero los sistemas compartidos y luego abre hilos.
+    // Asi los threads arrancan con mapa, jugador y mutex ya preparados.
     threadManager.init();
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
-    srand(time(NULL));
+    srand((unsigned int)time(NULL) ^ (unsigned int)clock());
+    logEvent(computerMode ? "Modo 2: la computadora controla a Kirby." : "Modo 1: jugador controla a Kirby.");
 
     player = new Player(10, 10);
     loadLevel("assets/levels/level1.txt");
 
     spawnFoodsOnGround(foods, map, 5);
 
-    // Iniciamos creando 3 enemigos
     enemigosCreadosEnNivel = 3;
     for(int i = 0; i < 3; i++) {
-        Enemy* e = new Enemy(30 + (i * 20), 5);
-        enemies.push_back(e);
-        createEnemyThread(e);
+        Enemy* enemy = nullptr;
+        // Garantiza que el jugador vea al menos un enemigo de fuego temprano.
+        if (i == 1) {
+            enemy = new FireEnemy(30 + (i * 20), 5);
+        } else {
+            enemy = createRandomEnemy(30 + (i * 20), 5);
+        }
+        enemies.push_back(enemy);
+        createEnemyThread(enemy, &threadManager.gameMutex);
     }
+
+    playerThreadActive = true;
+    eventThreadActive = true;
+    pthread_create(&playerThread, NULL, Game::playerThreadEntry, this);
+    pthread_create(&eventThread, NULL, Game::eventThreadEntry, this);
 }
 
 void Game::loadLevel(std::string levelPath) {
     LevelManager levelManager;
     int levelNumber = 1;
 
+    // El resto del juego habla en rutas logicas; LevelManager recibe numero.
     if (levelPath.find("boss") != std::string::npos) {
         levelNumber = 3;
     } else if (levelPath.find("level2") != std::string::npos) {
@@ -232,227 +76,38 @@ void Game::loadLevel(std::string levelPath) {
     enemigosCreadosEnNivel = 0;
 }
 
-void Game::processInput() {
-    int ch = inputManager.getInput();
-    if (ch == ERR) return;
-
-    switch(ch) {
-        case 'a': case 'A': player->moveLeft(); break;
-        case 'd': case 'D': player->moveRight(); break;
-        case 'w': case 'W': player->jump(); break;
-        
-        case 'j': case 'J':
-            player->inhale();
-            for (auto enemy : enemies) {
-                if (enemy->isActive()) {
-                    int distance = abs(player->getX() - enemy->getX());
-                    bool enemyInFront = player->isFacingRight()
-                        ? enemy->getX() >= player->getX()
-                        : enemy->getX() <= player->getX();
-
-                    if (enemyInFront && distance <= 8 && player->getY() == enemy->getY()) {
-                        enemy->takeDamage(1); 
-                        player->addScore(100);
-                    }
-                }
-            }
-            break;
-
-        case 'h': case 'H': player->stopInhaling(); break;
-        
-        case 'k': case 'K':
-            if (player->isFacingRight()) {
-                projectiles.push_back(new Projectile(player->getX() + player->getWidth(), player->getY(), 1));
-            } else {
-                int spawnX = player->getX() - 4;
-                if (spawnX < 0) {
-                    spawnX = 0;
-                }
-                projectiles.push_back(new Projectile(spawnX, player->getY(), -1));
-            }
-            break;
-
-        case 'q': case 'Q': running = false; break;
-    }
-}
-
-void Game::update() {
-    player->update();
-
-    if (player->getY() >= map.getHeight() - player->getHeight()) {
-        resetPlayerAfterFall(player, currentLevel);
-    }
-
-    gravitySystem.applyGravity(player, &map);
-
-    int activeEnemiesCount = 0;
-
-    // 1. Actualizar Enemigos y contar los sobrevivientes
-    for(auto enemy : enemies) {
-        if (enemy->isActive()) {
-            activeEnemiesCount++; // Suma al censo de enemigos vivos
-
-            Boss* boss = dynamic_cast<Boss*>(enemy);
-            if (boss != nullptr) {
-                boss->update();
-            } else {
-                enemyAI.updateEnemy(enemy, player);
-                gravitySystem.applyGravity(enemy, &map);
-            }
-            
-            if (CollisionSystem::checkAABB(
-                    player->getX(), player->getY(), player->getWidth(), player->getHeight(),
-                    enemy->getX(), enemy->getY(), enemy->getWidth(), enemy->getHeight()
-                )) {
-                player->takeDamage(1);
-            }
-        }
-    }
-
-    Boss* activeBoss = getActiveBoss(enemies);
-    if (currentLevel == 3 && activeBoss != nullptr) {
-        bossMinionTimer++;
-        if (bossMinionTimer >= 90 && activeEnemiesCount < 4) {
-            int spawnX = activeBoss->getX() > player->getX()
-                ? activeBoss->getX() - 18
-                : activeBoss->getX() + 18;
-
-            if (spawnX < 2) {
-                spawnX = 2;
-            }
-            if (spawnX > map.getWidth() - 8) {
-                spawnX = map.getWidth() - 8;
-            }
-
-            Enemy* minion = new Enemy(spawnX, 5);
-            enemies.push_back(minion);
-            createEnemyThread(minion);
-            bossMinionTimer = 0;
-        }
-    } else {
-        bossMinionTimer = 0;
-    }
-
-    // RESPAWN DINÁMICO
-    // Si mataste enemigos se generanr máximo 5
-    if (currentLevel < 3 && activeEnemiesCount < 3 && enemigosCreadosEnNivel < 5) {
-        int spawnX = player->getX() + 40 + (rand() % 20);
-
-        if (spawnX >= map.getWidth() - 10) {
-            spawnX = map.getWidth() - 15;
-        }
-
-        Enemy* newEnemy = new Enemy(spawnX, 5);
-        enemies.push_back(newEnemy);
-        enemigosCreadosEnNivel++;
-        createEnemyThread(newEnemy);
-    }
-
-    if (currentLevel < 3 && countActiveFoods(foods) < 3) {
-        spawnFoodsOnGround(foods, map, 2);
-    }
-
-    // 3. Actualizar Proyectiles
-    for (auto projectile : projectiles) {
-        if (projectile->isActive()) {
-            projectile->update(); 
-            for (auto enemy : enemies) {
-                if (enemy->isActive() && CollisionSystem::checkAABB(
-                        projectile->getX(), projectile->getY(), projectile->getWidth(), projectile->getHeight(),
-                        enemy->getX(), enemy->getY(), enemy->getWidth(), enemy->getHeight()
-                    )) {
-                    enemy->takeDamage(1);   
-                    projectile->takeDamage(1);
-                    player->addScore(100);     
-                }
-            }
-        }
-    }
-
-    if (currentLevel == 3 && getActiveBoss(enemies) == nullptr) {
-        nodelay(stdscr, FALSE);
-
-        GameOverScreen victoryScreen;
-        victoryScreen.showVictory(player->getScore());
-        running = false;
-        return;
-    }
-
-    // ======================================
-    // COLISIONES CON COMIDA (CURACIÓN)
-    // ======================================
-    for (auto food : foods) {
-        if (food->isActive()) {
-            if (CollisionSystem::checkAABB(
-                    player->getX(), player->getY(), player->getWidth(), player->getHeight(),
-                    food->getX(), food->getY(), food->getWidth(), food->getHeight()
-                )) {
-
-                food->setActive(false);
-                player->setHealth(player->getHealth() + food->getHealAmount());
-                player->addScore(food->getScoreValue());
-            }
-        }
-    }
-
-    camera.update(player->getX());
-
-    // ======================================
-    // GAME OVER Y CAMBIO DE NIVEL
-    // ======================================
-    if (player->getHealth() <= 0) {
-        nodelay(stdscr, FALSE); 
-        
-        GameOverScreen gameOverScreen;
-        gameOverScreen.show(player->getScore()); 
-        running = false; 
-        return;
-    }
-
-    if(player->getX() >= map.getWidth() - 5) {
-        currentLevel++;
-        if(currentLevel == 2) {
-            deactivateLevelEntities(enemies, projectiles, foods);
-            loadLevel("assets/levels/level2.txt");
-            player->setX(5);
-            player->setY(10);
-
-            spawnFoodsOnGround(foods, map, 5);
-        } else if(currentLevel == 3) {
-            deactivateLevelEntities(enemies, projectiles, foods);
-            showBossScreen();
-            loadLevel("assets/levels/boss.txt");
-            player->setX(5);
-            player->setY(10);
-
-            Boss* boss = new Boss(55, 16);
-            enemies.push_back(boss);
-        } else {
-            running = false;
-        }
-    }
-
-}
-
-void Game::render() {
-    pthread_mutex_lock(&threadManager.gameMutex);
-
-    renderer.render(map, camera, *player, enemies, projectiles, foods);
-    hud.render(player, currentLevel, getActiveBoss(enemies));
-    refresh(); 
-
-    pthread_mutex_unlock(&threadManager.gameMutex);
-}
-
-void Game::run() {
+bool Game::run() {
     while(running) {
-        processInput();
+        // Update se protege porque toca casi todo el estado compartido.
+        pthread_mutex_lock(&threadManager.gameMutex);
         update();
+        bool shouldRender = running;
+        pthread_mutex_unlock(&threadManager.gameMutex);
+
+        if (!shouldRender) {
+            break;
+        }
+
         render();
-        usleep(50000); 
+        usleep(50000);
     }
+
+    playerThreadActive = false;
+    eventThreadActive = false;
+    // Despierta el hilo de eventos si estaba bloqueado en sem_wait.
+    sem_post(&threadManager.eventSemaphore);
+
+    pthread_mutex_lock(&threadManager.gameMutex);
+    deactivateLevelEntities(enemies, projectiles, foods);
+    pthread_mutex_unlock(&threadManager.gameMutex);
+
+    pthread_join(playerThread, NULL);
+    pthread_join(eventThread, NULL);
+    usleep(150000);
     threadManager.destroy();
     nodelay(stdscr, FALSE);
+
+    return restartRequested;
 }
 
 bool Game::isRunning() { return running; }

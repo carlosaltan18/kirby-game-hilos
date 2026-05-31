@@ -5,8 +5,10 @@ class InputManager {
 
 public:
 
+    // Constructor liviano; ncurses se configura desde main/Game.
     InputManager();
 
+    // Lee una tecla sin bloquear cuando nodelay esta activo.
     int getInput();
 };
 

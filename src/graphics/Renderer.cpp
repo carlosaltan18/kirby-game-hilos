@@ -1,5 +1,6 @@
 #include "../../include/Renderer.h"
 #include "../../include/Boss.h"
+#include "../../include/FireEnemy.h"
 #include <ncurses.h>
 #include <string>
 
@@ -70,10 +71,16 @@ void Renderer::render(
 
         for (int x = 0; x < (int)visibleRow.length(); x++) {
             char tile = visibleRow[x];
+            bool isGoalTile = tile == '>' || tile == 'M' || tile == 'E' || tile == 'T' || tile == 'A';
+
             if (has_colors() && tile == '#') {
                 attron(COLOR_PAIR(5) | A_BOLD);
                 mvaddch(y, x, tile);
                 attroff(COLOR_PAIR(5) | A_BOLD);
+            } else if (has_colors() && isGoalTile) {
+                attron(COLOR_PAIR(6) | A_BOLD);
+                mvaddch(y, x, tile);
+                attroff(COLOR_PAIR(6) | A_BOLD);
             } else if (has_colors() && tile != ' ') {
                 attron(COLOR_PAIR(3) | A_BOLD);
                 mvaddch(y, x, tile);
@@ -104,6 +111,10 @@ void Renderer::render(
                     mvprintw(enemy->getY() + 1, enemyScreenX, "%s", boss->getLine2().c_str());
                     mvprintw(enemy->getY() + 2, enemyScreenX, "%s", boss->getLine3().c_str());
                     if (has_colors()) attroff(COLOR_PAIR(8) | A_BOLD);
+                } else if (dynamic_cast<FireEnemy*>(enemy) != nullptr) {
+                    if (has_colors()) attron(COLOR_PAIR(8) | A_BOLD);
+                    mvprintw(enemy->getY(), enemyScreenX, "%s", enemy->getSymbol().c_str());
+                    if (has_colors()) attroff(COLOR_PAIR(8) | A_BOLD);
                 } else {
                     std::string sprite = animationSystem.getEnemySprite(enemy->isActive());
                     if (has_colors()) attron(COLOR_PAIR(2) | A_BOLD);
@@ -132,9 +143,10 @@ void Renderer::render(
         if (projectile->isActive()) { // Verificar que el proyectil no haya colisionado
             int projScreenX = projectile->getX() - offsetX;
             if (projScreenX >= 0 && projScreenX < 80) {
-                if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
+                int colorPair = projectile->getAbility() == KirbyAbility::FIRE ? 8 : 3;
+                if (has_colors()) attron(COLOR_PAIR(colorPair) | A_BOLD);
                 mvprintw(projectile->getY(), projScreenX, "%s", projectile->getSymbol().c_str());
-                if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
+                if (has_colors()) attroff(COLOR_PAIR(colorPair) | A_BOLD);
             }
         }
     }

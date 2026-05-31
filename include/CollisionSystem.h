@@ -5,6 +5,7 @@
 // cada entidad tiene una caja definida por x, y, width y height.
 class CollisionSystem {
 public:
+    // Revisa si dos rectangulos se traslapan.
     static bool checkAABB(
         int x1, int y1, int w1, int h1,
         int x2, int y2, int w2, int h2

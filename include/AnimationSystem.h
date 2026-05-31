@@ -8,9 +8,16 @@ class AnimationSystem {
 private:
     int frameCounter;
 public:
+    // Arranca el contador interno de frames.
     AnimationSystem();
+
+    // Avanza un frame de animacion.
     void update();
+
+    // Devuelve el sprite del enemigo segun el frame actual.
     std::string getEnemySprite(bool isActive);
+
+    // Devuelve el sprite alternante usado por items.
     std::string getItemSprite();
 };
 

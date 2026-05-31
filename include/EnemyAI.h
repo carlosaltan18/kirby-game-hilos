@@ -23,8 +23,10 @@ private:
 
 public:
 
+    // Prepara la IA en estado de patrulla.
     EnemyAI();
 
+    // Decide si el enemigo patrulla o persigue al jugador.
     void updateEnemy(
         Enemy* enemy,
         Player* player

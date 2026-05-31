@@ -24,8 +24,10 @@ private:
 
 public:
 
+    // Inicia contadores visuales del renderer.
     Renderer();
 
+    // Dibuja el mundo visible usando mapa, camara y entidades activas.
     void render(
         TileMap &map,
         Camera &camera,

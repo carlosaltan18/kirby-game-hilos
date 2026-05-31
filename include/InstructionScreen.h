@@ -3,6 +3,7 @@
 
 class InstructionScreen {
 public:
+    // Muestra objetivo, controles y simbologia antes del menu.
     void show();
 };
 

@@ -12,11 +12,13 @@ class SpawnSystem {
 
 public:
 
+    // Agrega enemigos normales o de fuego al vector recibido.
     void spawnEnemies(
         std::vector<Enemy*> &enemies,
         int amount
     );
 
+    // Agrega items aleatorios al vector recibido.
     void spawnFood(
         std::vector<Food*> &foods,
         int amount

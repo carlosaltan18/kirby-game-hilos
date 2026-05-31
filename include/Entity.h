@@ -17,19 +17,37 @@ protected:
     bool active;
 
 public:
+    // Define posicion inicial, tamano y marca la entidad como activa.
     Entity(int x, int y, int width, int height);
-    
+
+    // Actualiza el comportamiento propio de la entidad.
     virtual void update() = 0;
+
+    // Devuelve el texto ASCII que representa la entidad.
     virtual std::string getSymbol() = 0;
 
+    // Posicion horizontal en coordenadas del mapa.
     int getX();
+
+    // Posicion vertical en coordenadas del mapa.
     int getY();
-    int getWidth();  
-    int getHeight(); 
-    
+
+    // Ancho usado por render y colisiones.
+    int getWidth();
+
+    // Alto usado por render y colisiones.
+    int getHeight();
+
+    // Cambia la posicion horizontal.
     void setX(int x);
+
+    // Cambia la posicion vertical.
     void setY(int y);
+
+    // Indica si la entidad sigue participando en el juego.
     bool isActive();
+
+    // Destructor virtual para permitir herencia segura.
     virtual ~Entity();
 };
 

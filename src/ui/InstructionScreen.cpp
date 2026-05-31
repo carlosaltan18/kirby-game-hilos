@@ -34,7 +34,7 @@ void InstructionScreen::show() {
     if (has_colors()) attroff(COLOR_PAIR(4) | A_BOLD | A_UNDERLINE);
     else attroff(A_BOLD | A_UNDERLINE);
     mvprintw(startY + 5, startX, "Avanza, evita o absorbe enemigos y llega a la meta.");
-    mvprintw(startY + 6, startX, "Supera el nivel 2 para entrar contra el jefe final.");
+    mvprintw(startY + 6, startX, "Hay modo jugador y modo computadora automatica.");
 
     if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD | A_UNDERLINE);
     else attron(A_BOLD | A_UNDERLINE);
@@ -45,7 +45,7 @@ void InstructionScreen::show() {
     mvprintw(startY + 9, startX + 2, "[W] Saltar / Flotar");
     mvprintw(startY + 10, startX + 2, "[A/D] Mover y voltear a Kirby");
     mvprintw(startY + 11, startX + 2, "[J/H] Absorber hacia donde mira / dejar de absorber");
-    mvprintw(startY + 12, startX + 2, "[K] Disparar estrella hacia donde mira");
+    mvprintw(startY + 12, startX + 2, "[K] Usar habilidad copiada: Estrella o Fuego");
     mvprintw(startY + 13, startX + 2, "[Q] Salir de la partida en curso");
 
     if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD | A_UNDERLINE);
@@ -55,7 +55,7 @@ void InstructionScreen::show() {
     else attroff(A_BOLD | A_UNDERLINE);
 
     mvprintw(startY + 16, startX + 2, "Menus: flechas ARRIBA/ABAJO y ENTER.");
-    mvprintw(startY + 17, startX + 2, "Instrucciones, puntajes/finales: cualquier tecla para volver.");
+    mvprintw(startY + 17, startX + 2, "Final: escribe nombre y elige R reiniciar o M menu.");
 
     if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD | A_UNDERLINE);
     else attron(A_BOLD | A_UNDERLINE);
@@ -68,15 +68,15 @@ void InstructionScreen::show() {
     if (has_colors()) attroff(COLOR_PAIR(1) | A_BOLD);
 
     if (has_colors()) attron(COLOR_PAIR(2) | A_BOLD);
-    mvprintw(startY + 20, startX + 20, "[0_0] Enemigo");
+    mvprintw(startY + 20, startX + 20, "[0_0] Normal  /~F~\\ Fuego");
     if (has_colors()) attroff(COLOR_PAIR(2) | A_BOLD);
 
     if (has_colors()) attron(COLOR_PAIR(3) | A_BOLD);
-    mvprintw(startY + 21, startX + 2, "* O~ Proyectil / (&) [+] {$} Items");
+    mvprintw(startY + 21, startX + 2, "* O~ Estrella / ~F>> Fuego / (&) [+] {$} Items");
     if (has_colors()) attroff(COLOR_PAIR(3) | A_BOLD);
 
     if (has_colors()) attron(COLOR_PAIR(5) | A_BOLD);
-    mvprintw(startY + 21, startX + 35, "####### Suelo");
+    mvprintw(startY + 21, startX + 35, ">>META>> Cambio");
     if (has_colors()) attroff(COLOR_PAIR(5) | A_BOLD);
 
     std::string exitMsg = "Presiona cualquier tecla para volver al menu...";

@@ -59,6 +59,12 @@ kirby/
 │
 │   ├── core/
 │   │   ├── Game.cpp
+│   │   ├── GameActions.cpp
+│   │   ├── GameRender.cpp
+│   │   ├── GameThreads.cpp
+│   │   ├── GameUpdate.cpp
+│   │   ├── GameWorld.cpp
+│   │   ├── GameInternals.h
 │   │   ├── ThreadManager.cpp
 │   │   └── Timer.cpp
 │
@@ -87,6 +93,7 @@ kirby/
 │   │   ├── Character.cpp
 │   │   ├── Player.cpp
 │   │   ├── Enemy.cpp
+│   │   ├── FireEnemy.cpp
 │   │   ├── Boss.cpp
 │   │   ├── Projectile.cpp
 │   │   ├── Item.cpp
@@ -140,8 +147,17 @@ Control principal del juego.
 | ThreadManager | Manejo de pthreads |
 | Timer | Control de tiempo |
 
-Para entender mejor que coordina `Game.cpp` durante una partida, revisa
+Para entender mejor que coordina el modulo `Game` durante una partida, revisa
 [`docs/core-game.md`](docs/core-game.md).
+
+Para revisar el avance contra los requisitos del enunciado, revisa
+[`docs/requisitos-kirby.md`](docs/requisitos-kirby.md).
+
+Para ubicar rapidamente cada archivo del proyecto, revisa
+[`docs/catalogo-archivos.md`](docs/catalogo-archivos.md).
+
+Para el informe escrito, hay un borrador base en
+[`docs/informe-final-borrador.md`](docs/informe-final-borrador.md).
 
 ---
 
@@ -175,8 +191,9 @@ Objetos del juego.
 |---|---|
 | Player | Kirby |
 | Enemy | Enemigos |
+| FireEnemy | Enemigo que otorga Fuego |
 | Boss | Jefe final |
-| Projectile | Disparos |
+| Projectile | Disparos de Estrella/Fuego |
 | Food | Curación |
 
 ---
@@ -212,7 +229,7 @@ sudo apt install libncurses5-dev libncursesw5-dev
 ## 1. Clonar repositorio
 
 ```bash
-git clone https://github.com/USUARIO/kirby.git
+git clone https://github.com/carlosaltan18/kirby-game-hilos.git
 ```
 
 ---
@@ -262,8 +279,9 @@ make clean
 | A | Mover izquierda |
 | D | Mover derecha |
 | W | Saltar |
-| K | Disparar |
-| ESC | Pausa |
+| J | Absorber |
+| K | Usar habilidad copiada |
+| Q | Salir de la partida |
 
 ---
 
@@ -278,7 +296,7 @@ make clean
 #                                                          #
 #                    #######                               #
 #                                                          #
-#                                   EXIT                   #
+#                                 >>META>>                 #
 ############################################################
 
 Vida: 3    Score: 1200
@@ -304,8 +322,8 @@ El proyecto implementa concurrencia mediante POSIX Threads:
 
 - Player Thread
 - Enemy Threads
-- Physics Thread
-- Render Thread
+- Projectile Threads
+- Event Thread
 
 Utilizando:
 
@@ -392,10 +410,10 @@ en lugar de `cout`.
 
 # 👨‍💻 Integrantes
 
-| Nombre | Rol |
-|---|---|
-| Carlos Altán | Render/Física |
-| Cristian Orellana | UI/Game Design |
-| Sergio Tepaz | Concurrencia/IA |
+| Nombre |
+|---|
+| Carlos Altán |
+| Cristian Orellana |
+| Sergio Tepaz |
 
 ---

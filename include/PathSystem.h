@@ -10,19 +10,23 @@ class PathSystem {
 
 public:
 
+    // Constructor sin estado publico; el .cpp guarda memoria por enemigo.
     PathSystem();
 
+    // Mueve al enemigo horizontalmente hacia una X objetivo.
     void moveTowardsTarget(
         Enemy* enemy,
         int targetX
     );
 
+    // Hace patrullar al enemigo entre dos limites.
     void patrolMovement(
         Enemy* enemy,
         int leftLimit,
         int rightLimit
     );
 
+    // Calcula distancia horizontal aproximada entre enemigo y jugador.
     int calculateDistance(
         Enemy* enemy,
         Player* player

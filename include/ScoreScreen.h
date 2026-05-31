@@ -3,6 +3,7 @@
 
 class ScoreScreen {
 public:
+    // Muestra los puntajes guardados y espera una tecla para volver.
     void show();
 };
 
