@@ -28,7 +28,28 @@ static std::string askPlayerName(int y, int maxX) {
     return playerName;
 }
 
-void GameOverScreen::show(int finalScore) {
+static bool askRestartChoice(int y, int maxX) {
+    std::string restartText = "[R] Reiniciar partida    [M] Volver al menu";
+    int restartX = (maxX - restartText.length()) / 2;
+
+    if (has_colors()) attron(COLOR_PAIR(4) | A_BOLD);
+    mvprintw(y, restartX, "%s", restartText.c_str());
+    if (has_colors()) attroff(COLOR_PAIR(4) | A_BOLD);
+    refresh();
+    flushinp();
+
+    while (true) {
+        int ch = getch();
+        if (ch == 'r' || ch == 'R') {
+            return true;
+        }
+        if (ch == 'm' || ch == 'M' || ch == 10) {
+            return false;
+        }
+    }
+}
+
+bool GameOverScreen::show(int finalScore) {
     clear(); 
 
     int maxY, maxX;
@@ -57,19 +78,10 @@ void GameOverScreen::show(int finalScore) {
     std::string playerName = askPlayerName(startY + 9, maxX);
     ScoreManager::saveScore(finalScore, playerName);
 
-    std::string continueText = "Presiona cualquier tecla para continuar...";
-    int continueX = (maxX - continueText.length()) / 2;
-    
-    if (has_colors()) attron(COLOR_PAIR(4));
-    else attron(A_DIM);
-    mvprintw(startY + 12, continueX, "%s", continueText.c_str());
-    if (has_colors()) attroff(COLOR_PAIR(4));
-    else attroff(A_DIM);
-    refresh();
-    getch(); 
+    return askRestartChoice(startY + 12, maxX);
 }
 
-void GameOverScreen::showVictory(int finalScore) {
+bool GameOverScreen::showVictory(int finalScore) {
     clear();
 
     int maxY, maxX;
@@ -98,14 +110,5 @@ void GameOverScreen::showVictory(int finalScore) {
     std::string playerName = askPlayerName(startY + 9, maxX);
     ScoreManager::saveScore(finalScore, playerName);
 
-    std::string continueText = "Presiona cualquier tecla para continuar...";
-    int continueX = (maxX - continueText.length()) / 2;
-
-    if (has_colors()) attron(COLOR_PAIR(4));
-    else attron(A_DIM);
-    mvprintw(startY + 12, continueX, "%s", continueText.c_str());
-    if (has_colors()) attroff(COLOR_PAIR(4));
-    else attroff(A_DIM);
-    refresh();
-    getch();
+    return askRestartChoice(startY + 12, maxX);
 }

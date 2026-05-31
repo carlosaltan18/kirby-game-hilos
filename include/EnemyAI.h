@@ -11,6 +11,8 @@ enum EnemyState {
     CHASE
 };
 
+// Decide si un enemigo patrulla o persigue. El movimiento exacto lo delega en
+// PathSystem para mantener separada la decision del desplazamiento.
 class EnemyAI {
 
 private:
@@ -21,8 +23,10 @@ private:
 
 public:
 
+    // Prepara la IA en estado de patrulla.
     EnemyAI();
 
+    // Decide si el enemigo patrulla o persigue al jugador.
     void updateEnemy(
         Enemy* enemy,
         Player* player

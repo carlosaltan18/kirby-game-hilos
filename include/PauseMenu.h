@@ -3,7 +3,7 @@
 
 class PauseMenu {
 public:
-    // Retorna true si el jugador quiere continuar, false si quiere salir al menú principal
+    // Retorna true si el jugador quiere continuar, false si quiere salir al menu.
     bool show();
 };
 

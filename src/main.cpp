@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include "MainMenu.h"
+#include "InstructionScreen.h"
 
 int main() {
     initscr();              
@@ -27,6 +28,9 @@ int main() {
         init_pair(7, COLOR_WHITE, COLOR_BLUE);
         init_pair(8, COLOR_WHITE, COLOR_RED);
     }
+
+    InstructionScreen instructions;
+    instructions.show();
 
     MainMenu menu;
     menu.show();

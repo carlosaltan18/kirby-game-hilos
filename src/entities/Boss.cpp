@@ -3,17 +3,17 @@
 Boss::Boss(int x, int y) : Enemy(x, y) {
     width = 7;
     height = 3;
-    health = 10;
+    health = 16;
     attackTimer = 0;
     moveDirection = -1;
-    leftLimit = 20;
-    rightLimit = 70;
+    leftLimit = 12;
+    rightLimit = 72;
 }
 
 void Boss::update() {
     attackTimer++;
 
-    if (attackTimer % 3 == 0) {
+    if (attackTimer % 2 == 0) {
         x += moveDirection;
     }
 
@@ -25,11 +25,15 @@ void Boss::update() {
         moveDirection = -1;
     }
 
-    if (attackTimer % 50 < 8) {
+    if (attackTimer % 36 < 10) {
         y = 15;
     } else {
         y = 16;
     }
+}
+
+bool Boss::canBeAbsorbed() {
+    return false;
 }
 
 std::string Boss::getSymbol() { return "(o_o)"; }

@@ -5,12 +5,23 @@
 #include <ncurses.h>
 #include <string>
 
+static void launchGame(bool computerMode) {
+    bool restart = false;
+
+    do {
+        Game game(computerMode);
+        game.init();
+        restart = game.run();
+    } while (restart);
+}
+
 void MainMenu::show() {
     int choice = 0;
     int highlight = 0;
 
-    std::string options[4] = {
-        "Iniciar Partida",
+    std::string options[5] = {
+        "Modo 1: Un jugador",
+        "Modo 2: Computadora",
         "Instrucciones",
         "Puntajes Destacados",
         "Salir"
@@ -38,7 +49,7 @@ void MainMenu::show() {
         mvprintw(10, 36, "(>'-')>");
         if (has_colors()) attroff(COLOR_PAIR(1) | A_BOLD);
 
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 5; i++) {
             if(i == highlight) {
                 if (has_colors()) attron(COLOR_PAIR(6) | A_BOLD);
                 else attron(A_REVERSE | A_BOLD);
@@ -61,23 +72,23 @@ void MainMenu::show() {
 
         switch(choice) {
             case KEY_UP:
-                highlight = (highlight == 0) ? 3 : highlight - 1;
+                highlight = (highlight == 0) ? 4 : highlight - 1;
                 break;
 
             case KEY_DOWN:
-                highlight = (highlight == 3) ? 0 : highlight + 1;
+                highlight = (highlight == 4) ? 0 : highlight + 1;
                 break;
 
             case 10: 
                 if (highlight == 0) {
-                    Game game;
-                    game.init();
-                    game.run(); 
+                    launchGame(false);
                 } else if (highlight == 1) {
-                    instructionScreen.show();
+                    launchGame(true);
                 } else if (highlight == 2) {
-                    scoreScreen.show();
+                    instructionScreen.show();
                 } else if (highlight == 3) {
+                    scoreScreen.show();
+                } else if (highlight == 4) {
                     return; 
                 }
                 break;
