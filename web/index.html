@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kirby Graphic Engine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="game-shell">
+        <canvas id="gameCanvas" aria-label="Kirby Graphic Engine"></canvas>
+
+        <section class="hud" aria-live="polite">
+            <div class="hud-main">
+                <span id="hudHealth">Vida: 5</span>
+                <span id="hudScore">Score: 0</span>
+                <span id="hudLevel">Nivel: 1</span>
+                <span id="hudAbility">Habilidad: Ninguna</span>
+            </div>
+            <div class="hud-side">
+                <span id="hudBoss"></span>
+                <span id="hudMode">Modo jugador</span>
+            </div>
+        </section>
+
+        <section id="menuOverlay" class="overlay is-visible">
+            <div class="panel main-panel">
+                <p class="eyebrow">Kirby Graphic Engine</p>
+                <h1>Kirby</h1>
+                <p class="subtitle">Version grafica jugable con Canvas, niveles, comida, habilidades y jefe final.</p>
+                <div class="actions">
+                    <button data-action="start-player">Modo jugador</button>
+                    <button data-action="start-ai">Modo computadora</button>
+                    <button data-action="instructions">Instrucciones</button>
+                    <button data-action="scores">Puntajes</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="instructionsOverlay" class="overlay">
+            <div class="panel info-panel">
+                <h2>Instrucciones</h2>
+                <div class="grid-info">
+                    <p><strong>A / D</strong><br>Mover y voltear a Kirby.</p>
+                    <p><strong>W</strong><br>Saltar. En el aire permite flotar por tiempo limitado.</p>
+                    <p><strong>J / H</strong><br>Absorber hacia donde mira / dejar de absorber.</p>
+                    <p><strong>K</strong><br>Usar Estrella o Fuego si hay habilidad copiada.</p>
+                    <p><strong>P</strong><br>Pausar o continuar la partida.</p>
+                    <p><strong>Q</strong><br>Volver al menu principal.</p>
+                </div>
+                <p class="note">Las habilidades tienen tiempo limite. El HUD muestra cuantos segundos quedan.</p>
+                <button data-action="menu">Volver</button>
+            </div>
+        </section>
+
+        <section id="scoresOverlay" class="overlay">
+            <div class="panel info-panel">
+                <h2>Puntajes</h2>
+                <ol id="scoreList" class="score-list"></ol>
+                <div class="actions">
+                    <button data-action="clear-scores">Limpiar</button>
+                    <button data-action="menu">Volver</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="gameOverOverlay" class="overlay">
+            <div class="panel info-panel">
+                <p id="gameOverEyebrow" class="eyebrow">Partida terminada</p>
+                <h2 id="gameOverTitle">Game Over</h2>
+                <p id="gameOverScore" class="subtitle">Score: 0</p>
+                <label class="name-field">
+                    Nombre
+                    <input id="playerName" maxlength="16" placeholder="INVITADO">
+                </label>
+                <div class="actions">
+                    <button data-action="save-restart">Guardar y reiniciar</button>
+                    <button data-action="save-menu">Guardar y menu</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="pauseOverlay" class="overlay">
+            <div class="panel pause-panel">
+                <h2>Pausa</h2>
+                <div class="actions">
+                    <button data-action="resume">Continuar</button>
+                    <button data-action="menu">Menu principal</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="toast" class="toast" role="status"></div>
+    </main>
+
+    <script src="game.js"></script>
+</body>
+</html>

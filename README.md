@@ -18,6 +18,7 @@ El proyecto implementa:
 ✅ HUD en tiempo real  
 ✅ Sistema de puntajes  
 ✅ Cambio de niveles  
+✅ Versión gráfica jugable en navegador
 
 ---
 
@@ -45,7 +46,6 @@ El proyecto implementa:
 - Cámara con scrolling
 - HUD dinámico
 - Interfaz ncurses
-
 ---
 
 # 📁 Estructura del Proyecto
