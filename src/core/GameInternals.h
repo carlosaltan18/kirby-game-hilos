@@ -11,7 +11,7 @@ extern int enemigosCreadosEnNivel;
 extern int bossMinionTimer;
 extern int contactDamageCooldown;
 
-// Helpers internos del modulo Game. No forman parte de la interfaz publica.
+// Helpers internos del modulo Game. .
 void createEnemyThread(Enemy* enemy, pthread_mutex_t* mutex);
 void createProjectileThread(Projectile* projectile, pthread_mutex_t* mutex);
 

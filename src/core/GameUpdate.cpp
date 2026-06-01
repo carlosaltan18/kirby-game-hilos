@@ -9,15 +9,18 @@ void Game::update() {
 
     // Cada cierto numero de frames despierta el hilo de eventos para items.
     eventSignalCounter++;
+    //si el contador llega a 36, se despierta el hilo de eventos y se reinicia el contador. 
+    // Esto hace que el hilo de eventos se despierte cada 36 frames, 
+    // lo que permite que los items se actualicen y aparezcan en el juego de manera regular.
     if (eventSignalCounter >= 36) {
         sem_post(&threadManager.eventSemaphore);
         eventSignalCounter = 0;
     }
-
+    // El cooldown de daño por contacto evita perder muchas vidas de golpe.4
     if (contactDamageCooldown > 0) {
         contactDamageCooldown--;
     }
-
+    // Validacion de caida: si el jugador esta por debajo del mapa, se resetea a una posicion segura.
     if (player->getY() >= map.getHeight() - player->getHeight()) {
         // Caer por un hueco castiga, pero reposiciona para no quedar atrapado.
         resetPlayerAfterFall(player, currentLevel);
@@ -27,7 +30,7 @@ void Game::update() {
     gravitySystem.applyGravity(player, &map);
 
     int activeEnemiesCount = 0;
-
+    // Se actualizan enemigos activos y se valida contacto con el jugador.
     for(auto enemy : enemies) {
         if (enemy->isActive()) {
             activeEnemiesCount++;
@@ -71,6 +74,8 @@ void Game::update() {
             }
 
             Enemy* minion = createRandomEnemy(spawnX, 5);
+            // El jefe solo puede invocar enemigos de apoyo durante su pelea, 
+            // asi que no se cuenta para el limite de spawn del nivel.
             enemies.push_back(minion);
             createEnemyThread(minion, &threadManager.gameMutex);
             logEvent("El jefe llamo a un enemigo de apoyo.");
@@ -93,17 +98,21 @@ void Game::update() {
         enemigosCreadosEnNivel++;
         createEnemyThread(newEnemy, &threadManager.gameMutex);
     }
-
+    // Validacion de proyectiles activos: impacto con escenario o enemigos.
+    // El jugador no dispara en el nivel del jefe, asi que no se crean nuevos proyectiles.
+    // Esto hace que el hilo de proyectiles se mantenga activo para validar impactos, pero sin crear nuevos.
     for (auto projectile : projectiles) {
         if (projectile->isActive()) {
             // El proyectil se mueve en su hilo; aqui solo se valida impacto.
+            // El proyectil se destruye al tocar el escenario o salir de los limites del mapa.
             if (projectile->getX() < 0 || projectile->getX() >= map.getWidth() ||
                 map.isSolid(projectile->getX(), projectile->getY())) {
                 projectile->takeDamage(projectile->getHealth());
                 logEvent("Un ataque se deshizo al tocar el escenario.");
                 continue;
             }
-
+            // Validacion de impacto con enemigos activos.
+            // El proyectil se destruye al tocar un enemigo, pero el enemigo solo recibe dano si el proyectil estaba activo.
             for (auto enemy : enemies) {
                 if (enemy->isActive() && CollisionSystem::checkAABB(
                         projectile->getX(), projectile->getY(), projectile->getWidth(), projectile->getHeight(),
@@ -161,7 +170,8 @@ void Game::update() {
     }
 
     if(player->getX() >= map.getWidth() - 5) {
-        // La meta funciona por posicion al final del mapa visible/cargado.
+        // Alcanza la meta del nivel, se avanza o termina segun corresponda.
+        //
         currentLevel++;
         if(currentLevel == 2) {
             deactivateLevelEntities(enemies, projectiles, foods);

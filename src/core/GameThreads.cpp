@@ -11,7 +11,8 @@ struct ProjectileThreadData {
     Projectile* projectile;
     pthread_mutex_t* mutex;
 };
-
+// Cada enemigo y proyectil tiene su propio hilo para actualizar su movimiento y animacion
+// sin bloquear el update principal, que se encarga de colisiones y logica global.
 static void* enemyThreadFunction(void* arg) {
     EnemyThreadData* data = (EnemyThreadData*)arg;
 
@@ -28,7 +29,8 @@ static void* enemyThreadFunction(void* arg) {
     delete data;
     return NULL;
 }
-
+// El movimiento de los proyectiles es mas fluido, asi que se actualizan mas seguido.
+// El update principal se encarga de revisar colisiones, asi que este hilo solo mueve el proyectil.
 static void* projectileThreadFunction(void* arg) {
     ProjectileThreadData* data = (ProjectileThreadData*)arg;
 
@@ -45,7 +47,8 @@ static void* projectileThreadFunction(void* arg) {
     delete data;
     return NULL;
 }
-
+// El hilo de jugador se encarga de procesar el input del usuario o la IA, y modificar el estado de Kirby.
+// Esto permite que el update principal se enfoque en la logica global y colisiones sin bloquear el input.
 void createEnemyThread(Enemy* enemy, pthread_mutex_t* mutex) {
     EnemyThreadData* data = new EnemyThreadData{enemy, mutex};
     pthread_t enemyThread;
@@ -53,14 +56,16 @@ void createEnemyThread(Enemy* enemy, pthread_mutex_t* mutex) {
     // Se separa porque el juego no espera individualmente a cada enemigo.
     pthread_detach(enemyThread);
 }
-
+// El hilo de proyectiles es similar al de enemigos pero con un update mas fluido para que los ataques se sientan responsivos.
+// Ambos hilos toman el mutex global para modificar su estado, pero se enfocan solo en su propia logica de movimiento y animacion.
 void createProjectileThread(Projectile* projectile, pthread_mutex_t* mutex) {
     ProjectileThreadData* data = new ProjectileThreadData{projectile, mutex};
     pthread_t projectileThread;
     pthread_create(&projectileThread, NULL, projectileThreadFunction, data);
     pthread_detach(projectileThread);
 }
-
+// El hilo de jugador se encarga de procesar el input del usuario o la IA, y modificar el estado de Kirby.
+// Esto permite que el update principal se enfoque en la logica global y colisiones sin bloquear el input.
 void* Game::playerThreadEntry(void* arg) {
     Game* game = (Game*)arg;
 
@@ -78,7 +83,8 @@ void* Game::playerThreadEntry(void* arg) {
 
     return NULL;
 }
-
+// El hilo de eventos se encarga de generar eventos periodicos como la aparicion de nuevos items en el escenario
+// para mantener el juego dinamico.
 void* Game::eventThreadEntry(void* arg) {
     Game* game = (Game*)arg;
 

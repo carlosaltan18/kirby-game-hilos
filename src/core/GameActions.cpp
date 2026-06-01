@@ -9,7 +9,7 @@ void Game::logEvent(const std::string& message) {
         eventLog.erase(eventLog.begin());
     }
 }
-
+// Cuenta enemigos activos para decidir si se puede avanzar de nivel o no.
 int Game::countActiveEnemies() {
     int activeEnemies = 0;
 
@@ -21,7 +21,7 @@ int Game::countActiveEnemies() {
 
     return activeEnemies;
 }
-
+// Cuenta proyectiles activos para limitar la cantidad que el jugador puede tener en pantalla.
 int Game::countActiveProjectiles() {
     int activeProjectiles = 0;
 
@@ -33,7 +33,9 @@ int Game::countActiveProjectiles() {
 
     return activeProjectiles;
 }
-
+// Dispara un proyectil si el jugador tiene una habilidad copiada. El proyectil hereda
+// la habilidad y direccion de Kirby en el momento del disparo, 
+// lo que permite usarlo para atacar mientras se esta moviendo o incluso cambiar de direccion justo despues de disparar.
 void Game::fireProjectile() {
     if (!player->hasSpecialAbility()) {
         logEvent("Kirby intento atacar, pero no tiene habilidad copiada.");
@@ -55,7 +57,7 @@ void Game::fireProjectile() {
 
     logEvent("Kirby uso la habilidad " + player->getAbilityName() + ".");
 }
-
+// Intenta absorber un enemigo cercano. El rango de absorcion es pequeño para que el jugador
 void Game::tryAbsorbEnemy() {
     player->inhale();
 
@@ -80,10 +82,10 @@ void Game::tryAbsorbEnemy() {
 
     logEvent("Kirby intento absorber, pero no habia enemigo cerca.");
 }
-
+// El modo computadora tiene una logica simple pero con varios comportamientos posibles para no ser tan predecible
+// Elige entre avanzar, buscar comida, acercarse a enemigo o retirarse, y tiene timers para no repetir exactamente la misma accion cada frame.
 void Game::processComputerInput() {
     // El modo computadora usa timers cortos para no repetir exactamente
-    // la misma accion cada frame.
     if (actionCooldown > 0) {
         actionCooldown--;
     }
@@ -206,7 +208,7 @@ void Game::processComputerInput() {
         actionCooldown = 10 + (rand() % 10);
     }
 }
-
+// metodo que procesa la entrada del jugador
 void Game::processInput() {
     int ch = inputManager.getInput();
 

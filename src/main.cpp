@@ -3,6 +3,10 @@
 #include "InstructionScreen.h"
 
 int main() {
+    // Configura ncurses para el juego.
+    // initscr() inicia el modo ncurses, noecho() evita que las teclas se muestren en pantalla,
+    // cbreak() hace que las teclas se procesen inmediatamente, keypad() habilita el uso de teclas especiales
+    // curs_set(0) oculta el cursor.
     initscr();              
     noecho();               
     cbreak();               
