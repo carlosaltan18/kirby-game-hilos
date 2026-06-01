@@ -18,8 +18,7 @@ void deactivateLevelEntities(
     std::vector<Projectile*> &projectiles,
     std::vector<Food*> &foods
 ) {
-    // No se borran punteros aqui porque puede haber hilos terminando.
-    // Desactivar es suficiente para que dejen de actualizarse/renderizarse.
+    // Desactivar para que dejen de actualizarse/renderizarse.
     for (auto enemy : enemies) {
         if (enemy->isActive()) {
             enemy->takeDamage(enemy->getHealth());
@@ -152,7 +151,7 @@ void spawnFoodsOnGround(std::vector<Food*> &foods, TileMap &map, int amount) {
 }
 
 Boss* getActiveBoss(std::vector<Enemy*> &enemies) {
-    // El vector guarda Enemy*, asi que se identifica al jefe por dynamic_cast.
+    // El vector guarda Enemy*, asi que se identifica al jefe.
     for (auto enemy : enemies) {
         Boss* boss = dynamic_cast<Boss*>(enemy);
         if (boss != nullptr && boss->isActive()) {

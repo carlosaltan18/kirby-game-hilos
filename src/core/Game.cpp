@@ -27,7 +27,7 @@ Game::Game(bool computerMode) {
     bossMinionTimer = 0;
     contactDamageCooldown = 0;
 }
-
+//init se encarga de preparar el juego, cargar el nivel, crear enemigos y lanzar los hilos.
 void Game::init() {
     // La partida arma primero los sistemas compartidos y luego abre hilos.
     // Asi los threads arrancan con mapa, jugador y mutex ya preparados.
@@ -45,7 +45,6 @@ void Game::init() {
     enemigosCreadosEnNivel = 3;
     for(int i = 0; i < 3; i++) {
         Enemy* enemy = nullptr;
-        // Garantiza que el jugador vea al menos un enemigo de fuego temprano.
         if (i == 1) {
             enemy = new FireEnemy(30 + (i * 20), 5);
         } else {
@@ -60,12 +59,11 @@ void Game::init() {
     pthread_create(&playerThread, NULL, Game::playerThreadEntry, this);
     pthread_create(&eventThread, NULL, Game::eventThreadEntry, this);
 }
-
+//loadLevel se encarga de cargar el mapa y resetear el contador de enemigos creados en el nivel.
 void Game::loadLevel(std::string levelPath) {
     LevelManager levelManager;
     int levelNumber = 1;
 
-    // El resto del juego habla en rutas logicas; LevelManager recibe numero.
     if (levelPath.find("boss") != std::string::npos) {
         levelNumber = 3;
     } else if (levelPath.find("level2") != std::string::npos) {
@@ -75,7 +73,8 @@ void Game::loadLevel(std::string levelPath) {
     levelManager.loadLevel(levelNumber, &map);
     enemigosCreadosEnNivel = 0;
 }
-
+//run es el bucle principal del juego, que se encarga de actualizar el estado del juego
+//  renderizarlo y manejar la lógica de finalización y reinicio.
 bool Game::run() {
     while(running) {
         // Update se protege porque toca casi todo el estado compartido.
@@ -96,11 +95,11 @@ bool Game::run() {
     eventThreadActive = false;
     // Despierta el hilo de eventos si estaba bloqueado en sem_wait.
     sem_post(&threadManager.eventSemaphore);
-
     pthread_mutex_lock(&threadManager.gameMutex);
+    // Desactiva enemigos, proyectiles y alimentos antes de unirse a los hilos para evitar que sigan actuando mientras esperamos.
     deactivateLevelEntities(enemies, projectiles, foods);
     pthread_mutex_unlock(&threadManager.gameMutex);
-
+    // Une los hilos para asegurarse de que han terminado antes de destruir el juego y liberar recursos.
     pthread_join(playerThread, NULL);
     pthread_join(eventThread, NULL);
     usleep(150000);

@@ -1,5 +1,6 @@
 #include "../../include/Entity.h"
-
+// La clase Entity es la clase base para todos los objetos del juego, 
+// incluyendo personajes, enemigos, jefes y objetos.
 Entity::Entity(int x, int y, int width, int height) {
     this->x = x;
     this->y = y;

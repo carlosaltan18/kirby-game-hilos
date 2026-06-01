@@ -4,8 +4,7 @@
 #include <string>
 #include <utility>
 
-// Lee y guarda los mejores puntajes. El archivo actual es JSON, pero tambien
-// puede cargar el txt viejo como respaldo.
+// Lee y guarda los mejores puntajes. El archivo actual es JSON
 class ScoreManager {
 public:
     // Agrega un puntaje y conserva la lista ordenada.

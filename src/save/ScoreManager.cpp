@@ -7,6 +7,7 @@
 static const char* SCORE_FILE = "assets/scores.json";
 static const char* LEGACY_SCORE_FILE = "assets/scores.txt";
 
+//Limpia el nombre del jugador para evitar problemas de caracteres
 static std::string escapeJson(const std::string& value) {
     std::string escaped;
 
@@ -19,7 +20,7 @@ static std::string escapeJson(const std::string& value) {
 
     return escaped;
 }
-
+// Lee todo el contenido de un archivo y lo devuelve como una cadena
 static std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -30,20 +31,20 @@ static std::string readWholeFile(const std::string& path) {
     buffer << file.rdbuf();
     return buffer.str();
 }
-
+// Carga las puntuaciones 
 static std::vector<std::pair<std::string, int>> loadLegacyScores() {
     std::vector<std::pair<std::string, int>> scores;
     std::ifstream file(LEGACY_SCORE_FILE);
     std::string name;
     int score;
-
+    // El formato esperado es "nombre puntuación" por línea
     while (file >> name >> score) {
         scores.push_back({name, score});
     }
 
     return scores;
 }
-
+// Analiza el contenido JSON para extraer los nombres y puntuaciones
 static std::vector<std::pair<std::string, int>> parseJsonScores(const std::string& content) {
     std::vector<std::pair<std::string, int>> scores;
     size_t position = 0;
@@ -75,16 +76,16 @@ static std::vector<std::pair<std::string, int>> parseJsonScores(const std::strin
             break;
         }
         scoreStart++;
-
+        // Saltar espacios en blanco antes del número
         while (scoreStart < content.length() && std::isspace((unsigned char)content[scoreStart])) {
             scoreStart++;
         }
-
+        // Encontrar el final del número
         size_t scoreEnd = scoreStart;
         while (scoreEnd < content.length() && std::isdigit((unsigned char)content[scoreEnd])) {
             scoreEnd++;
         }
-
+        // Si encontramos un número válido, lo convertimos a entero y lo agregamos a la lista de puntuaciones
         if (scoreEnd > scoreStart) {
             scores.push_back({name, std::stoi(content.substr(scoreStart, scoreEnd - scoreStart))});
         }
@@ -104,7 +105,7 @@ static void sortAndTrim(std::vector<std::pair<std::string, int>>& scores) {
         scores.resize(10);
     }
 }
-
+// Escribe las puntuaciones en formato JSON en el archivo correspondiente
 static void writeJsonScores(const std::vector<std::pair<std::string, int>>& scores) {
     std::ofstream file(SCORE_FILE);
     if (!file.is_open()) {
@@ -130,7 +131,7 @@ void ScoreManager::saveScore(int score, const std::string& playerName) {
     sortAndTrim(scores);
     writeJsonScores(scores);
 }
-
+// Carga las puntuaciones desde el archivo JSON
 std::vector<std::pair<std::string, int>> ScoreManager::loadTopScores() {
     std::vector<std::pair<std::string, int>> scores = parseJsonScores(readWholeFile(SCORE_FILE));
 

@@ -15,5 +15,5 @@ std::string FireEnemy::getCopiedAbilityName() {
 }
 
 std::string FireEnemy::getSymbol() {
-    return "/~F~\\";
+    return "(>#<)";
 }

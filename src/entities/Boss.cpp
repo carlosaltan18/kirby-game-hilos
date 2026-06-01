@@ -9,7 +9,8 @@ Boss::Boss(int x, int y) : Enemy(x, y) {
     leftLimit = 12;
     rightLimit = 72;
 }
-
+// El metodo update del Boss incrementa un contador de ataque y mueve al jefe de izquierda a derecha 
+// entre los límites establecidos. Además, alterna la posición vertical del jefe para crear una animación de movimiento.
 void Boss::update() {
     attackTimer++;
 
