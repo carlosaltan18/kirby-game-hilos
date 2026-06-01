@@ -147,17 +147,6 @@ Control principal del juego.
 | ThreadManager | Manejo de pthreads |
 | Timer | Control de tiempo |
 
-Para entender mejor que coordina el modulo `Game` durante una partida, revisa
-[`docs/core-game.md`](docs/core-game.md).
-
-Para revisar el avance contra los requisitos del enunciado, revisa
-[`docs/requisitos-kirby.md`](docs/requisitos-kirby.md).
-
-Para ubicar rapidamente cada archivo del proyecto, revisa
-[`docs/catalogo-archivos.md`](docs/catalogo-archivos.md).
-
-Para el informe escrito, hay un borrador base en
-[`docs/informe-final-borrador.md`](docs/informe-final-borrador.md).
 
 ---
 
